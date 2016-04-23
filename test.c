@@ -1700,7 +1700,7 @@ int BRTransactionTests()
     size_t scriptLen = BRAddressScriptPubKey(script, sizeof(script), address.s);
     BRTransaction *tx = BRTransactionNew();
     
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
     BRTransactionAddOutput(tx, 100000000, script, scriptLen);
     BRTransactionAddOutput(tx, 4900000000, script, scriptLen);
     
@@ -1738,16 +1738,16 @@ int BRTransactionTests()
     BRTransactionFree(tx);
     
     tx = BRTransactionNew();
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
     BRTransactionAddOutput(tx, 1000000, script, scriptLen);
     BRTransactionAddOutput(tx, 1000000, script, scriptLen);
     BRTransactionAddOutput(tx, 1000000, script, scriptLen);
@@ -1781,8 +1781,8 @@ int BRTransactionTests()
     BRTransactionFree(tx);
 
     BRTransaction *src = BRTransactionNew ();
-    BRTransactionAddInput(src, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
-    BRTransactionAddInput(src, inHash, 0, 1, script, scriptLen, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(src, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(src, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
     BRTransactionAddOutput(src, 1000000, script, scriptLen);
     BRTransactionAddOutput(src, 1000000, script, scriptLen);
     BRTransactionAddOutput(src, 1000000, script, scriptLen);
@@ -1873,7 +1873,7 @@ int BRWalletTests()
     size_t outScriptLen = BRAddressScriptPubKey(outScript, sizeof(outScript), recvAddr.s);
     
     tx = BRTransactionNew();
-    BRTransactionAddInput(tx, inHash, 0, 1, inScript, inScriptLen, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, inScript, inScriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
     BRTransactionAddOutput(tx, SATOSHIS, outScript, outScriptLen);
 //    BRWalletRegisterTransaction(w, tx); // test adding unsigned tx
 //    if (BRWalletBalance(w) != 0)
@@ -1895,7 +1895,7 @@ int BRWalletTests()
         r = 0, fprintf(stderr, "***FAILED*** %s: BRWalletRegisterTransaction() test 3\n", __func__);
 
     tx = BRTransactionNew();
-    BRTransactionAddInput(tx, inHash, 1, 1, inScript, inScriptLen, NULL, 0, TXIN_SEQUENCE - 1);
+    BRTransactionAddInput(tx, inHash, 1, 1, inScript, inScriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE - 1);
     BRTransactionAddOutput(tx, SATOSHIS, outScript, outScriptLen);
     tx->lockTime = 1000;
     BRTransactionSign(tx, 0, &k, 1);
@@ -1913,7 +1913,7 @@ int BRWalletTests()
 
     BRWalletFree(w);
     tx = BRTransactionNew();
-    BRTransactionAddInput(tx, inHash, 0, 1, inScript, inScriptLen, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, inScript, inScriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
     BRTransactionAddOutput(tx, SATOSHIS, outScript, outScriptLen);
     BRTransactionSign(tx, 0, &k, 1);
     tx->timestamp = 1;
@@ -1974,7 +1974,7 @@ int BRWalletTests()
     int64_t amt;
     
     tx = BRTransactionNew();
-    BRTransactionAddInput(tx, inHash, 0, 1, inScript, inScriptLen, NULL, 0, TXIN_SEQUENCE);
+    BRTransactionAddInput(tx, inHash, 0, 1, inScript, inScriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
     BRTransactionAddOutput(tx, 740000, outScript, outScriptLen);
     BRTransactionSign(tx, 0, &k, 1);
     w = BRWalletNew(&tx, 1, mpk);

@@ -109,6 +109,19 @@ void BRTxInputSetSignature(BRTxInput *input, const uint8_t *signature, size_t si
     }
 }
 
+void BRTxInputSetWitness(BRTxInput *input, const uint8_t *witness, size_t witLen)
+{
+    if (input->witness) array_free(input->witness);
+    input->witness = NULL;
+    input->witLen = 0;
+    
+    if (witness) {
+        input->witLen = witLen;
+        array_new(input->witness, witLen);
+        array_add_array(input->witness, witness, witLen);
+    }
+}
+
 static size_t _BRTxInputData(const BRTxInput *input, uint8_t *data, size_t dataLen)
 {
     size_t off = 0;
@@ -351,7 +364,8 @@ BRTransaction *BRTransactionCopy(const BRTransaction *tx)
     for (size_t i = 0; i < tx->inCount; i++) {
         BRTransactionAddInput(cpy, tx->inputs[i].txHash, tx->inputs[i].index, tx->inputs[i].amount,
                               tx->inputs[i].script, tx->inputs[i].scriptLen,
-                              tx->inputs[i].signature, tx->inputs[i].sigLen, tx->inputs[i].sequence);
+                              tx->inputs[i].signature, tx->inputs[i].sigLen,
+                              tx->inputs[i].witness, tx->inputs[1].witLen, tx->inputs[i].sequence);
     }
     
     for (size_t i = 0; i < tx->outCount; i++) {
@@ -439,9 +453,9 @@ size_t BRTransactionSerialize(const BRTransaction *tx, uint8_t *buf, size_t bufL
 // adds an input to tx
 void BRTransactionAddInput(BRTransaction *tx, UInt256 txHash, uint32_t index, uint64_t amount,
                            const uint8_t *script, size_t scriptLen, const uint8_t *signature, size_t sigLen,
-                           uint32_t sequence)
+                           const uint8_t *witness, size_t witLen, uint32_t sequence)
 {
-    BRTxInput input = { txHash, index, "", amount, NULL, 0, NULL, 0, sequence };
+    BRTxInput input = { txHash, index, "", amount, NULL, 0, NULL, 0, NULL, 0, sequence };
 
     assert(tx != NULL);
     assert(! UInt256IsZero(txHash));
@@ -451,6 +465,7 @@ void BRTransactionAddInput(BRTransaction *tx, UInt256 txHash, uint32_t index, ui
     if (tx) {
         if (script) BRTxInputSetScript(&input, script, scriptLen);
         if (signature) BRTxInputSetSignature(&input, signature, sigLen);
+        if (witness) BRTxInputSetWitness(&input, witness, witLen);
         array_add(tx->inputs, input);
         tx->inCount = array_count(tx->inputs);
     }
@@ -511,6 +526,37 @@ size_t BRTransactionSize(const BRTransaction *tx)
     }
     
     return size;
+}
+
+// transaction cost as defined by BIP141: https://github.com/bitcoin/bips/blob/master/bip-0141.mediawiki
+size_t BRTransactionCost(const BRTransaction *tx)
+{
+    BRTxInput *input;
+    size_t size = 8 + BRVarIntSize(tx->inCount) + BRVarIntSize(tx->outCount), witSize = 0;
+    
+    for (size_t i = 0; i < tx->inCount; i++) {
+        input = &tx->inputs[i];
+        
+        if (input->signature && input->witness) {
+            size += tx->inputs[i].sigLen;
+            witSize += tx->inputs[i].witLen;
+        }
+        else if (input->script && input->scriptLen > 0 && input->script[0] == OP_0) {
+            witSize += TX_INPUT_SIZE;
+        }
+        else if (input->script && input->scriptLen > 0 && input->script[0] == OP_HASH160) {
+            size += 23;
+            witSize += TX_INPUT_SIZE;
+        }
+        else size += TX_INPUT_SIZE;
+    }
+    
+    for (size_t i = 0; i < tx->outCount; i++) {
+        size += tx->outputs[i].scriptLen;
+    }
+    
+    if (witSize > 0) witSize += 2 + tx->inCount;
+    return size*4 + witSize;
 }
 
 // minimum transaction fee needed for tx to relay across the bitcoin network
