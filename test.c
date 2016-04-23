@@ -1700,7 +1700,11 @@ int BRTransactionTests()
     size_t scriptLen = BRAddressScriptPubKey(script, sizeof(script), address.s);
     BRTransaction *tx = BRTransactionNew();
     
+<<<<<<< HEAD
     BRTransactionAddInput(tx, inHash, 0, 1, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+=======
+    BRTransactionAddInput(tx, inHash, 0, 5000000000, script, scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+>>>>>>> _BRTransactionWitnessData()
     BRTransactionAddOutput(tx, 100000000, script, scriptLen);
     BRTransactionAddOutput(tx, 4900000000, script, scriptLen);
     
@@ -1974,7 +1978,11 @@ int BRWalletTests()
     int64_t amt;
     
     tx = BRTransactionNew();
+<<<<<<< HEAD
     BRTransactionAddInput(tx, inHash, 0, 1, inScript, inScriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+=======
+    BRTransactionAddInput(tx, inHash, 0, SATOSHIS, inScript, inScriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
+>>>>>>> _BRTransactionWitnessData()
     BRTransactionAddOutput(tx, 740000, outScript, outScriptLen);
     BRTransactionSign(tx, 0, &k, 1);
     w = BRWalletNew(&tx, 1, mpk);
