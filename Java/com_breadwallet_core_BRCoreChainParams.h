@@ -33,19 +33,35 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_createJniTes
 
 /*
  * Class:     com_breadwallet_core_BRCoreChainParams
- * Method:    createJniMainnetBcashChainParams
+ * Method:    createJniMainnetMotaChainParams
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_createJniMainnetBcashChainParams
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_createJniMainnetMotaChainParams
   (JNIEnv *, jclass);
 
 /*
  * Class:     com_breadwallet_core_BRCoreChainParams
- * Method:    createJniTestnetBcashChainParams
+ * Method:    createJniTestnetMotaChainParams
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_createJniTestnetBcashChainParams
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_createJniTestnetMotaChainParams
   (JNIEnv *, jclass);
+
+/*
+ * Class:     com_breadwallet_core_BRCoreChainParams
+ * Method:    createJniMainnetMotaChainParams
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_createJniMainnetMotaChainParams
+        (JNIEnv *, jclass);
+
+/*
+ * Class:     com_breadwallet_core_BRCoreChainParams
+ * Method:    createJniTestnetMotaChainParams
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_createJniTestnetMotaChainParams
+        (JNIEnv *, jclass);
 
 #ifdef __cplusplus
 }

@@ -40,6 +40,7 @@ public class BRCoreChainParams extends BRCoreJniReference {
     //
     //
 
+    // Bitcoin
     public static BRCoreChainParams mainnetChainParams =
             new BRCoreChainParams(createJniMainnetChainParams());
 
@@ -50,6 +51,7 @@ public class BRCoreChainParams extends BRCoreJniReference {
 
     private static native long createJniTestnetChainParams ();
 
+    // Bitcoin Cash
     public static BRCoreChainParams mainnetBcashChainParams =
             new BRCoreChainParams(createJniMainnetBcashChainParams());
 
@@ -59,4 +61,15 @@ public class BRCoreChainParams extends BRCoreJniReference {
             new BRCoreChainParams(createJniTestnetBcashChainParams());
 
     private static native long createJniTestnetBcashChainParams();
+
+    // MotaCoin
+    public static BRCoreChainParams mainnetMotaChainParams =
+            new BRCoreChainParams(createJniMainnetMotaChainParams());
+
+    private static native long createJniMainnetMotaChainParams();
+
+    public static BRCoreChainParams testnetMotaChainParams =
+            new BRCoreChainParams(createJniTestnetMotaChainParams());
+
+    private static native long createJniTestnetMotaChainParams();
 }
