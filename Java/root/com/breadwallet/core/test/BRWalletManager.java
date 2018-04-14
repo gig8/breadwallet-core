@@ -638,7 +638,7 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         BRCoreWallet.Listener walletListener = getWalletListener();
 
-        BRCoreWallet w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, walletListener);
+        BRCoreWallet w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, 0, walletListener);
         asserting(null != w);
         BRCoreAddress recvAddr = w.getReceiveAddress();
 
@@ -663,7 +663,7 @@ public class BRWalletManager extends BRCoreWalletManager {
                 new BRCoreTransactionInput(inHash, 0, 1, inScript, new byte[]{}, 4294967295L));
         tx.addOutput(
                 new BRCoreTransactionOutput(SATOSHIS, outScript));
-        w.signTransaction(tx, 0x00, phrase);
+        w.signTransaction(tx, phrase);
         asserting (tx.isSigned());
         System.out.println("            Signed");
         w.registerTransaction(tx);
@@ -712,7 +712,7 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         System.out.println("            Init w/ One SATOSHI");
 
-        w = new BRCoreWallet(new BRCoreTransaction[] { tx }, mpk, walletListener);
+        w = new BRCoreWallet(new BRCoreTransaction[] { tx }, mpk, 0, walletListener);
         asserting (SATOSHIS == w.getBalance());
         asserting (w.getAllAddresses().length == 1 + SEQUENCE_GAP_LIMIT_EXTERNAL + SEQUENCE_GAP_LIMIT_INTERNAL);
 
@@ -730,7 +730,7 @@ public class BRWalletManager extends BRCoreWalletManager {
         asserting (null != tx);
         asserting (! tx.isSigned());
 
-	    w.signTransaction(tx, 0, phrase);
+	    w.signTransaction(tx, phrase);
         asserting (tx.isSigned());
 
         tx.setTimestamp(1);
@@ -755,14 +755,14 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         byte[] mpkSerialized = mpk.serialize();
         mpk = new BRCoreMasterPubKey(mpkSerialized, false);
-        w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, walletListener);
+        w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, 0, walletListener);
 
         tx = new BRCoreTransaction();
         tx.addInput(
                 new BRCoreTransactionInput(inHash, 0, 1, inScript, new byte[]{}, 4294967295L));
         tx.addOutput(
                 new BRCoreTransactionOutput(SATOSHIS, outScript));
-        w.signTransaction(tx, 0x00, phrase);
+        w.signTransaction(tx, phrase);
         asserting (tx.isSigned());
         System.out.println("            Signed");
         w.registerTransaction(tx);
@@ -772,7 +772,7 @@ public class BRWalletManager extends BRCoreWalletManager {
         asserting (null != tx);
         asserting (! tx.isSigned());
 
-        w.signTransaction(tx, 0, phrase);
+        w.signTransaction(tx, phrase);
         asserting (tx.isSigned());
         System.out.println("            Can send half SATOSHI");
 
@@ -832,7 +832,7 @@ public class BRWalletManager extends BRCoreWalletManager {
                 new BRCoreTransactionOutput(SATOSHIS, outScript));
 
 //        wm.signAndPublishTransaction(tx, phrase);
-        wm.getWallet().signTransaction(tx, 0x00, phrase);
+        wm.getWallet().signTransaction(tx, phrase);
 
         asserting (tx.isSigned());
         System.out.println("            Signed");
@@ -849,12 +849,12 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         BRCoreMasterPubKey mpk = new BRCoreMasterPubKey(phrase, true);
 
-        BRCoreWallet w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, getWalletListener());
+        BRCoreWallet w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, 0, getWalletListener());
         asserting(null != w);
 
         System.out.println("            Peers");
 
-        BRCorePeer peer = new BRCorePeer(1);
+        BRCorePeer peer = new BRCorePeer(1, w.getForkId());
         BRCorePeer[] peers = new BRCorePeer[1024];
         for (int i = 0; i < 1024; i++)
             peers[i] = peer;

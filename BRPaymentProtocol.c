@@ -714,7 +714,7 @@ BRPaymentProtocolPayment *BRPaymentProtocolPaymentNew(const uint8_t *merchantDat
 
 // buf must contain a serialized payment struct
 // returns a payment struct that must be freed by calling BRPaymentProtocolPaymentFree()
-BRPaymentProtocolPayment *BRPaymentProtocolPaymentParse(const uint8_t *buf, size_t bufLen)
+BRPaymentProtocolPayment *BRPaymentProtocolPaymentParse(int forkId, const uint8_t *buf, size_t bufLen)
 {
     BRPaymentProtocolPayment *payment = calloc(1, sizeof(*payment) + sizeof(ProtoBufContext));
     ProtoBufContext *ctx = (ProtoBufContext *)&payment[1];
@@ -736,7 +736,7 @@ BRPaymentProtocolPayment *BRPaymentProtocolPaymentParse(const uint8_t *buf, size
         uint64_t i = 0, key = _ProtoBufField(&i, &data, buf, &dLen, &off);
         
         switch (key >> 3) {
-            case payment_transactions: tx = BRTransactionParse(data, dLen); break;
+            case payment_transactions: tx = BRTransactionParse(forkId, data, dLen); break;
             case payment_refund_to: out = _BRPaymentProtocolOutputParse(data, dLen); break;
             case payment_memo: _ProtoBufString(&payment->memo, data, dLen); break;
             case payment_merch_data: payment->merchDataLen = _ProtoBufBytes(&payment->merchantData, data, dLen); break;
@@ -753,7 +753,7 @@ BRPaymentProtocolPayment *BRPaymentProtocolPaymentParse(const uint8_t *buf, size
 }
 
 // writes serialized payment struct to buf, returns number of bytes written, or total bufLen needed if buf is NULL
-size_t BRPaymentProtocolPaymentSerialize(const BRPaymentProtocolPayment *payment, uint8_t *buf, size_t bufLen)
+size_t BRPaymentProtocolPaymentSerialize(const BRPaymentProtocolPayment *payment, int forkId, uint8_t *buf, size_t bufLen)
 {
     const ProtoBufContext *ctx = (const ProtoBufContext *)&payment[1];
     size_t off = 0, sLen = 0x100, l;
@@ -767,10 +767,10 @@ size_t BRPaymentProtocolPaymentSerialize(const BRPaymentProtocolPayment *payment
     }
 
     for (size_t i = 0; i < payment->txCount; i++) {
-        l = BRTransactionSerialize(payment->transactions[i], NULL, 0);
+        l = BRTransactionSerialize(payment->transactions[i], forkId, NULL, 0);
         if (l > sLen) sBuf = realloc(sBuf, (sLen = l));
         assert(sBuf != NULL);
-        l = BRTransactionSerialize(payment->transactions[i], sBuf, sLen);
+        l = BRTransactionSerialize(payment->transactions[i], forkId, sBuf, sLen);
         _ProtoBufSetBytes(buf, bufLen, sBuf, l, payment_transactions, &off);
     }
 
@@ -833,7 +833,7 @@ BRPaymentProtocolACK *BRPaymentProtocolACKNew(BRPaymentProtocolPayment *payment,
 
 // buf must contain a serialized ACK struct
 // returns a ACK struct that must be freed by calling BRPaymentProtocolACKFree()
-BRPaymentProtocolACK *BRPaymentProtocolACKParse(const uint8_t *buf, size_t bufLen)
+BRPaymentProtocolACK *BRPaymentProtocolACKParse(int forkId, const uint8_t *buf, size_t bufLen)
 {
     BRPaymentProtocolACK *ack = calloc(1, sizeof(*ack) + sizeof(ProtoBufContext));
     ProtoBufContext *ctx = (ProtoBufContext *)&ack[1];
@@ -851,7 +851,7 @@ BRPaymentProtocolACK *BRPaymentProtocolACKParse(const uint8_t *buf, size_t bufLe
         uint64_t i = 0, key = _ProtoBufField(&i, &data, buf, &dataLen, &off);
         
         switch (key >> 3) {
-            case ack_payment: ack->payment = BRPaymentProtocolPaymentParse(data, dataLen); break;
+            case ack_payment: ack->payment = BRPaymentProtocolPaymentParse(forkId, data, dataLen); break;
             case ack_memo: _ProtoBufString(&ack->memo, data, dataLen); break;
             default: _ProtoBufUnknown(&ctx->unknown, key, i, data, dataLen); break;
         }
@@ -866,7 +866,7 @@ BRPaymentProtocolACK *BRPaymentProtocolACKParse(const uint8_t *buf, size_t bufLe
 }
 
 // writes serialized ACK struct to buf and returns number of bytes written, or total bufLen needed if buf is NULL
-size_t BRPaymentProtocolACKSerialize(const BRPaymentProtocolACK *ack, uint8_t *buf, size_t bufLen)
+size_t BRPaymentProtocolACKSerialize(const BRPaymentProtocolACK *ack, int forkId, uint8_t *buf, size_t bufLen)
 {
     const ProtoBufContext *ctx = (const ProtoBufContext *)&ack[1];
     size_t off = 0;
@@ -875,11 +875,11 @@ size_t BRPaymentProtocolACKSerialize(const BRPaymentProtocolACK *ack, uint8_t *b
     assert(ack->payment != NULL);
     
     if (ack->payment) {
-        size_t paymentLen = BRPaymentProtocolPaymentSerialize(ack->payment, NULL, 0);
+        size_t paymentLen = BRPaymentProtocolPaymentSerialize(ack->payment, forkId, NULL, 0);
         uint8_t *paymentBuf = malloc(paymentLen);
         
         assert(paymentBuf != NULL);
-        paymentLen = BRPaymentProtocolPaymentSerialize(ack->payment, paymentBuf, paymentLen);
+        paymentLen = BRPaymentProtocolPaymentSerialize(ack->payment, forkId, paymentBuf, paymentLen);
         _ProtoBufSetBytes(buf, bufLen, paymentBuf, paymentLen, ack_payment, &off);
         free(paymentBuf);
     }

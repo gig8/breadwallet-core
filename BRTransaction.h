@@ -92,7 +92,7 @@ typedef struct {
     size_t outCount;
     uint32_t lockTime;
     uint32_t blockHeight;
-    uint32_t timestamp; // time interval since unix epoch
+    uint32_t timestamp; // time interval since unix epoch - used in motacoin
 } BRTransaction;
 
 // returns a newly allocated empty transaction that must be freed by calling BRTransactionFree()
@@ -103,11 +103,11 @@ BRTransaction *BRTransactionCopy(const BRTransaction *tx);
 
 // buf must contain a serialized tx
 // retruns a transaction that must be freed by calling BRTransactionFree()
-BRTransaction *BRTransactionParse(const uint8_t *buf, size_t bufLen);
+BRTransaction *BRTransactionParse(int forkId, const uint8_t *buf, size_t bufLen);
 
 // returns number of bytes written to buf, or total bufLen needed if buf is NULL
-// (tx->blockHeight and tx->timestamp are not serialized)
-size_t BRTransactionSerialize(const BRTransaction *tx, uint8_t *buf, size_t bufLen);
+// (tx->blockHeight and tx->timestamp are not serialized - except timestamp in motacoin)
+size_t BRTransactionSerialize(const BRTransaction *tx, int forkId, uint8_t *buf, size_t bufLen);
 
 // adds an input to tx
 void BRTransactionAddInput(BRTransaction *tx, UInt256 txHash, uint32_t index, uint64_t amount,
@@ -121,10 +121,10 @@ void BRTransactionAddOutput(BRTransaction *tx, uint64_t amount, const uint8_t *s
 void BRTransactionShuffleOutputs(BRTransaction *tx);
 
 // size in bytes if signed, or estimated size assuming compact pubkey sigs
-size_t BRTransactionSize(const BRTransaction *tx);
+size_t BRTransactionSize(const BRTransaction *tx, int forkId);
     
 // minimum transaction fee needed for tx to relay across the bitcoin network
-uint64_t BRTransactionStandardFee(const BRTransaction *tx);
+uint64_t BRTransactionStandardFee(const BRTransaction *tx, int forkId);
 
 // checks if all signatures exist, but does not verify them
 int BRTransactionIsSigned(const BRTransaction *tx);

@@ -127,6 +127,7 @@ typedef struct {
     void *volatile mempoolInfo;
     void (*volatile mempoolCallback)(void *info, int success);
     pthread_t thread;
+    int forkId;
 } BRPeerContext;
 
 void BRPeerSendVersionMessage(BRPeer *peer);
@@ -400,7 +401,7 @@ static int _BRPeerAcceptInvMessage(BRPeer *peer, const uint8_t *msg, size_t msgL
 static int _BRPeerAcceptTxMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen)
 {
     BRPeerContext *ctx = (BRPeerContext *)peer;
-    BRTransaction *tx = BRTransactionParse(msg, msgLen);
+    BRTransaction *tx = BRTransactionParse(ctx->forkId, msg, msgLen);
     UInt256 txHash;
     int r = 1;
 
@@ -538,9 +539,9 @@ static int _BRPeerAcceptGetdataMessage(BRPeer *peer, const uint8_t *msg, size_t 
                 case inv_tx:
                     if (ctx->requestedTx) tx = ctx->requestedTx(ctx->info, hash);
 
-                    if (tx && BRTransactionSize(tx) < TX_MAX_SIZE) {
-                        uint8_t buf[BRTransactionSerialize(tx, NULL, 0)];
-                        size_t bufLen = BRTransactionSerialize(tx, buf, sizeof(buf));
+                    if (tx && BRTransactionSize(tx, ctx->forkId) < TX_MAX_SIZE) {
+                        uint8_t buf[BRTransactionSerialize(tx, ctx->forkId, NULL, 0)];
+                        size_t bufLen = BRTransactionSerialize(tx, ctx->forkId, buf, sizeof(buf));
                         char txHex[bufLen*2 + 1];
                         
                         for (size_t j = 0; j < bufLen; j++) {
@@ -1046,7 +1047,7 @@ static void _dummyThreadCleanup(void *info)
 }
 
 // returns a newly allocated BRPeer struct that must be freed by calling BRPeerFree()
-BRPeer *BRPeerNew(uint32_t magicNumber)
+BRPeer *BRPeerNew(uint32_t magicNumber, int forkId)
 {
     BRPeerContext *ctx = calloc(1, sizeof(*ctx));
     
@@ -1064,6 +1065,7 @@ BRPeer *BRPeerNew(uint32_t magicNumber)
     ctx->disconnectTime = DBL_MAX;
     ctx->socket = -1;
     ctx->threadCleanup = _dummyThreadCleanup;
+    ctx->forkId = forkId;
     return &ctx->peer;
 }
 

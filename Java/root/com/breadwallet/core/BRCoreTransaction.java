@@ -167,7 +167,7 @@ public class BRCoreTransaction extends BRCoreJniReference {
 
      * @return the size in bytes.
      */
-    public native long getSize ();
+    public native long getSize (int forkId);
 
     /**
      * The transaction's standard fee which is the minimum transaction fee needed for the
@@ -175,7 +175,7 @@ public class BRCoreTransaction extends BRCoreJniReference {
      * *
      * @return the fee (in Satoshis)?
      */
-    public native long getStandardFee ();
+    public native long getStandardFee (int forkId);
 
     /**
      * Returns true if all the transaction's signatures exists.  This method does not verify

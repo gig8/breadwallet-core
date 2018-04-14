@@ -453,24 +453,25 @@ Java_com_breadwallet_core_BRCorePaymentProtocolPayment_getMerchantMemo
  */
 JNIEXPORT jlong JNICALL
 Java_com_breadwallet_core_BRCorePaymentProtocolPayment_createPaymentProtocolPayment
-        (JNIEnv *env, jclass thisClass, jbyteArray dataByteArray)  {
+        (JNIEnv *env, jclass thisClass, jint forkId, jbyteArray dataByteArray)  {
     size_t dataLen = (*env)->GetArrayLength(env, dataByteArray);
     const uint8_t *data = (uint8_t *) (*env)->GetByteArrayElements(env, dataByteArray, 0);
-    return (jlong) BRPaymentProtocolPaymentParse (data, dataLen);
+    return (jlong) BRPaymentProtocolPaymentParse (forkId, data, dataLen);
 }
 /*
  * Class:     com_breadwallet_core_BRCorePaymentProtocolPayment
  * Method:    serialize
  * Signature: ()[B
  */
-JNIEXPORT jbyteArray JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolPayment_serialize
-        (JNIEnv *env, jobject thisObject) {
+JNIEXPORT jbyteArray JNICALL
+Java_com_breadwallet_core_BRCorePaymentProtocolPayment_serialize
+        (JNIEnv *env, jobject thisObject, jint forkId) {
     BRPaymentProtocolPayment *payment =
             (BRPaymentProtocolPayment *) getJNIReference(env, thisObject);
 
-    size_t dataLen = BRPaymentProtocolPaymentSerialize (payment, NULL, 0);
+    size_t dataLen = BRPaymentProtocolPaymentSerialize (payment, forkId, NULL, 0);
     uint8_t *data = (uint8_t *) malloc (dataLen);
-    BRPaymentProtocolPaymentSerialize (payment, data, dataLen);
+    BRPaymentProtocolPaymentSerialize (payment, forkId, data, dataLen);
 
     jbyteArray dataByteArray = (*env)->NewByteArray (env, dataLen);
     (*env)->SetByteArrayRegion (env, dataByteArray, 0, dataLen, (jbyte *) data);
@@ -610,10 +611,10 @@ Java_com_breadwallet_core_BRCorePaymentProtocolACK_getMerchantMemo
  * Signature: ([B)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_createPaymentProtocolACK
-        (JNIEnv *env, jclass thisClass, jbyteArray dataByteArray) {
+        (JNIEnv *env, jclass thisClass, jint forkId, jbyteArray dataByteArray) {
     size_t dataLen = (*env)->GetArrayLength(env, dataByteArray);
     const uint8_t *data = (uint8_t *) (*env)->GetByteArrayElements(env, dataByteArray, 0);
-    return (jlong) BRPaymentProtocolACKParse (data, dataLen);
+    return (jlong) BRPaymentProtocolACKParse (forkId, data, dataLen);
 }
 
 /*
@@ -621,14 +622,13 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_creat
  * Method:    serialize
  * Signature: ()[B
  */
-JNIEXPORT jbyteArray JNICALL
-Java_com_breadwallet_core_BRCorePaymentProtocolACK_serialize
-        (JNIEnv *env, jobject thisObject) {
+JNIEXPORT jbyteArray JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_serialize
+        (JNIEnv *env, jobject thisObject, jint forkId) {
     BRPaymentProtocolACK *ack = (BRPaymentProtocolACK *) getJNIReference (env, thisObject);
 
-    size_t dataLen = BRPaymentProtocolACKSerialize (ack, NULL, 0);
+    size_t dataLen = BRPaymentProtocolACKSerialize (ack, forkId, NULL, 0);
     uint8_t *data = (uint8_t *) malloc (dataLen);
-    BRPaymentProtocolACKSerialize (ack, data, dataLen);
+    BRPaymentProtocolACKSerialize (ack, forkId, data, dataLen);
 
     jbyteArray dataByteArray = (*env)->NewByteArray (env, dataLen);
     (*env)->SetByteArrayRegion (env, dataByteArray, 0, dataLen, (jbyte *) data);

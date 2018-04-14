@@ -103,6 +103,7 @@ static const BRChainParams BRMotaParams = {
     BRMotaVerifyDifficulty,
     BRMotaCheckpoints,
     sizeof(BRMotaCheckpoints)/sizeof(*BRMotaCheckpoints),
+    0x20, // forkId
 };
 
 static const BRChainParams BRMotaTestNetParams = {
@@ -112,7 +113,8 @@ static const BRChainParams BRMotaTestNetParams = {
     0, // no services
     BRMotaTestNetVerifyDifficulty,
     BRMotaTestNetCheckpoints,
-    sizeof(BRMotaTestNetCheckpoints)/sizeof(*BRMotaTestNetCheckpoints)
+    sizeof(BRMotaTestNetCheckpoints)/sizeof(*BRMotaTestNetCheckpoints),
+    0x20, // forkId
 };
 
 #endif // BRMotaParams_h

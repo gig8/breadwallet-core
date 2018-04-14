@@ -27,6 +27,7 @@
 #include "BRSet.h"
 #include "BRArray.h"
 #include "BRInt.h"
+#include "BRChainParams.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
@@ -1628,7 +1629,7 @@ void BRPeerManagerConnect(BRPeerManager *manager)
                 info = calloc(1, sizeof(*info));
                 assert(info != NULL);
                 info->manager = manager;
-                info->peer = BRPeerNew(manager->params->magicNumber);
+                info->peer = BRPeerNew(manager->params->magicNumber, manager->params->forkId);
                 *info->peer = peers[i];
                 array_rm(peers, i);
                 array_add(manager->connectedPeers, info->peer);

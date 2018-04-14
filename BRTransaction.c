@@ -39,6 +39,7 @@
 #define SIGHASH_SINGLE       0x03 // sign one of the outputs, I don't care where the other outputs go
 #define SIGHASH_ANYONECANPAY 0x80 // let other people add inputs, I don't care where the rest of the bitcoins come from
 #define SIGHASH_FORKID       0x40 // use BIP143 digest method (for b-cash/b-gold signatures)
+#define SIGHASH_TXTIME       0x20 // include txtime in transactions (for motacoin)
 
 // returns a random number less than upperBound, for non-cryptographic use only
 uint32_t BRRand(uint32_t upperBound)
@@ -186,7 +187,7 @@ static size_t _BRTransactionOutputData(const BRTransaction *tx, uint8_t *data, s
 // https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki
 // an index of SIZE_MAX will write the entire signed transaction
 // returns number of bytes written, or total len needed if data is NULL
-static size_t _BRTransactionWitnessData(const BRTransaction *tx, uint8_t *data, size_t dataLen, size_t index,
+static size_t _BRTransactionWitnessData(const BRTransaction *tx, int forkId, uint8_t *data, size_t dataLen, size_t index,
                                         int hashType)
 {
     BRTxInput input;
@@ -196,7 +197,12 @@ static size_t _BRTransactionWitnessData(const BRTransaction *tx, uint8_t *data, 
     if (index >= tx->inCount) return 0;
     if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], tx->version); // tx version
     off += sizeof(uint32_t);
-    
+
+    if (forkId | SIGHASH_TXTIME) {
+        if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], tx->timestamp); // nTime (for motacoin)
+        off += sizeof(uint32_t);
+    }
+
     if (! anyoneCanPay) {
         uint8_t buf[(sizeof(UInt256) + sizeof(uint32_t))*tx->inCount];
         
@@ -252,16 +258,21 @@ static size_t _BRTransactionWitnessData(const BRTransaction *tx, uint8_t *data, 
 // writes the data that needs to be hashed and signed for the tx input at index
 // an index of SIZE_MAX will write the entire signed transaction
 // returns number of bytes written, or total dataLen needed if data is NULL
-static size_t _BRTransactionData(const BRTransaction *tx, uint8_t *data, size_t dataLen, size_t index, int hashType)
+static size_t _BRTransactionData(const BRTransaction *tx, int forkId, uint8_t *data, size_t dataLen, size_t index, int hashType)
 {
     BRTxInput input;
     int anyoneCanPay = (hashType & SIGHASH_ANYONECANPAY), sigHash = (hashType & 0x1f);
     size_t i, off = 0;
     
-    if (hashType & SIGHASH_FORKID) return _BRTransactionWitnessData(tx, data, dataLen, index, hashType);
+    if (hashType & SIGHASH_FORKID) return _BRTransactionWitnessData(tx, forkId, data, dataLen, index, hashType);
     if (anyoneCanPay && index >= tx->inCount) return 0;
     if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], tx->version); // tx version
     off += sizeof(uint32_t);
+
+    if (forkId | SIGHASH_TXTIME) {
+        if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], tx->timestamp); // nTime (for motacoin)
+        off += sizeof(uint32_t);
+    }
     
     if (! anyoneCanPay) {
         off += BRVarIntSet((data ? &data[off] : NULL), (off <= dataLen ? dataLen - off : 0), tx->inCount);
@@ -328,6 +339,7 @@ BRTransaction *BRTransactionNew(void)
 
     assert(tx != NULL);
     tx->version = TX_VERSION;
+    tx->timestamp = time(NULL);
     array_new(tx->inputs, 1);
     array_new(tx->outputs, 2);
     tx->lockTime = TX_LOCKTIME;
@@ -344,6 +356,7 @@ BRTransaction *BRTransactionCopy(const BRTransaction *tx)
     
     assert(tx != NULL);
     *cpy = *tx;
+    cpy->timestamp = tx->timestamp;
     cpy->inputs = inputs;
     cpy->outputs = outputs;
     cpy->inCount = cpy->outCount = 0;
@@ -363,7 +376,7 @@ BRTransaction *BRTransactionCopy(const BRTransaction *tx)
 
 // buf must contain a serialized tx
 // retruns a transaction that must be freed by calling BRTransactionFree()
-BRTransaction *BRTransactionParse(const uint8_t *buf, size_t bufLen)
+BRTransaction *BRTransactionParse(int forkId, const uint8_t *buf, size_t bufLen)
 {
     assert(buf != NULL || bufLen == 0);
     if (! buf) return NULL;
@@ -376,6 +389,12 @@ BRTransaction *BRTransactionParse(const uint8_t *buf, size_t bufLen)
     
     tx->version = (off + sizeof(uint32_t) <= bufLen) ? UInt32GetLE(&buf[off]) : 0;
     off += sizeof(uint32_t);
+
+    if (forkId | SIGHASH_TXTIME) {
+        tx->timestamp = (off + sizeof(uint32_t) <= bufLen) ? UInt32GetLE(&buf[off]) : 0;
+        off += sizeof(uint32_t);
+    }
+
     tx->inCount = (size_t)BRVarInt(&buf[off], (off <= bufLen ? bufLen - off : 0), &len);
     off += len;
     array_set_count(tx->inputs, tx->inCount);
@@ -430,10 +449,10 @@ BRTransaction *BRTransactionParse(const uint8_t *buf, size_t bufLen)
 
 // returns number of bytes written to buf, or total bufLen needed if buf is NULL
 // (tx->blockHeight and tx->timestamp are not serialized)
-size_t BRTransactionSerialize(const BRTransaction *tx, uint8_t *buf, size_t bufLen)
+size_t BRTransactionSerialize(const BRTransaction *tx, int forkId, uint8_t *buf, size_t bufLen)
 {
     assert(tx != NULL);
-    return (tx) ? _BRTransactionData(tx, buf, bufLen, SIZE_MAX, SIGHASH_ALL) : 0;
+    return (tx) ? _BRTransactionData(tx, forkId, buf, bufLen, SIZE_MAX, SIGHASH_ALL) : 0;
 }
 
 // adds an input to tx
@@ -489,14 +508,19 @@ void BRTransactionShuffleOutputs(BRTransaction *tx)
 }
 
 // size in bytes if signed, or estimated size assuming compact pubkey sigs
-size_t BRTransactionSize(const BRTransaction *tx)
+size_t BRTransactionSize(const BRTransaction *tx, int forkId)
 {
     BRTxInput *input;
     size_t size;
 
     assert(tx != NULL);
+    // 8 for nVersion and nLockTime
     size = (tx) ? 8 + BRVarIntSize(tx->inCount) + BRVarIntSize(tx->outCount) : 0;
-    
+
+    if (forkId & SIGHASH_TXTIME) {
+        size += 4;  // for timestamp (nTime)
+    }
+
     for (size_t i = 0; tx && i < tx->inCount; i++) {
         input = &tx->inputs[i];
         
@@ -514,10 +538,10 @@ size_t BRTransactionSize(const BRTransaction *tx)
 }
 
 // minimum transaction fee needed for tx to relay across the bitcoin network
-uint64_t BRTransactionStandardFee(const BRTransaction *tx)
+uint64_t BRTransactionStandardFee(const BRTransaction *tx, int forkId)
 {
     assert(tx != NULL);
-    return ((BRTransactionSize(tx) + 999)/1000)*TX_FEE_PER_KB;
+    return ((BRTransactionSize(tx, forkId) + 999)/1000)*TX_FEE_PER_KB;
 }
 
 // checks if all signatures exist, but does not verify them
@@ -533,7 +557,7 @@ int BRTransactionIsSigned(const BRTransaction *tx)
 }
 
 // adds signatures to any inputs with NULL signatures that can be signed with any keys
-// forkId is 0 for bitcoin, 0x40 for b-cash, 0x4f for b-gold
+// forkId is 0 for bitcoin, 0x40 for b-cash, 0x4f for b-gold, 0x20 for motacoin
 // returns true if tx is signed
 int BRTransactionSign(BRTransaction *tx, int forkId, BRKey keys[], size_t keysCount)
 {
@@ -564,8 +588,8 @@ int BRTransactionSign(BRTransaction *tx, int forkId, BRKey keys[], size_t keysCo
         UInt256 md = UINT256_ZERO;
         
         if (elemsCount >= 2 && *elems[elemsCount - 2] == OP_EQUALVERIFY) { // pay-to-pubkey-hash
-            uint8_t data[_BRTransactionData(tx, NULL, 0, i, forkId | SIGHASH_ALL)];
-            size_t dataLen = _BRTransactionData(tx, data, sizeof(data), i, forkId | SIGHASH_ALL);
+            uint8_t data[_BRTransactionData(tx, forkId, NULL, 0, i, forkId | SIGHASH_ALL)];
+            size_t dataLen = _BRTransactionData(tx, forkId, data, sizeof(data), i, forkId | SIGHASH_ALL);
             
             BRSHA256_2(&md, data, dataLen);
             sigLen = BRKeySign(&keys[j], sig, sizeof(sig) - 1, md);
@@ -575,8 +599,8 @@ int BRTransactionSign(BRTransaction *tx, int forkId, BRKey keys[], size_t keysCo
             BRTxInputSetSignature(input, script, scriptLen);
         }
         else { // pay-to-pubkey
-            uint8_t data[_BRTransactionData(tx, NULL, 0, i, forkId | SIGHASH_ALL)];
-            size_t dataLen = _BRTransactionData(tx, data, sizeof(data), i, forkId | SIGHASH_ALL);
+            uint8_t data[_BRTransactionData(tx, forkId, NULL, 0, i, forkId | SIGHASH_ALL)];
+            size_t dataLen = _BRTransactionData(tx, forkId, data, sizeof(data), i, forkId | SIGHASH_ALL);
             
             BRSHA256_2(&md, data, dataLen);
             sigLen = BRKeySign(&keys[j], sig, sizeof(sig) - 1, md);
@@ -587,8 +611,8 @@ int BRTransactionSign(BRTransaction *tx, int forkId, BRKey keys[], size_t keysCo
     }
     
     if (tx && BRTransactionIsSigned(tx)) {
-        uint8_t data[_BRTransactionData(tx, NULL, 0, SIZE_MAX, 0)];
-        size_t len = _BRTransactionData(tx, data, sizeof(data), SIZE_MAX, 0);
+        uint8_t data[_BRTransactionData(tx, forkId, NULL, 0, SIZE_MAX, 0)];
+        size_t len = _BRTransactionData(tx, forkId, data, sizeof(data), SIZE_MAX, 0);
         
         BRSHA256_2(&tx->txHash, data, len);
         return 1;

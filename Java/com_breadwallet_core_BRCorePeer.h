@@ -157,7 +157,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePeer_createJniCorePeer
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePeer_createJniCorePeerMagic
-  (JNIEnv *, jclass, jlong);
+  (JNIEnv *, jclass, jlong, jint);
 
 #ifdef __cplusplus
 }

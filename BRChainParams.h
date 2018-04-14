@@ -44,6 +44,7 @@ typedef struct {
     int (*verifyDifficulty)(const BRMerkleBlock *block, const BRSet *blockSet); // blockSet must have last 2016 blocks
     const BRCheckPoint *checkpoints;
     size_t checkpointsCount;
+    int forkId;
 } BRChainParams;
 
 static const char *BRMainNetDNSSeeds[] = {
@@ -133,7 +134,8 @@ static const BRChainParams BRMainNetParams = {
     0,          // services
     BRMainNetVerifyDifficulty,
     BRMainNetCheckpoints,
-    sizeof(BRMainNetCheckpoints)/sizeof(*BRMainNetCheckpoints)
+    sizeof(BRMainNetCheckpoints)/sizeof(*BRMainNetCheckpoints),
+    0x00,   // forkId
 };
 
 static const BRChainParams BRTestNetParams = {
@@ -143,7 +145,8 @@ static const BRChainParams BRTestNetParams = {
     0,          // services
     BRTestNetVerifyDifficulty,
     BRTestNetCheckpoints,
-    sizeof(BRTestNetCheckpoints)/sizeof(*BRTestNetCheckpoints)
+    sizeof(BRTestNetCheckpoints)/sizeof(*BRTestNetCheckpoints),
+    0x00,   // forkId
 };
 
 #endif // BRChainParams_h

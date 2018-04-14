@@ -158,6 +158,7 @@ static const BRChainParams BRBCashParams = {
     BRBCashVerifyDifficulty,
     BRBCashCheckpoints,
     sizeof(BRBCashCheckpoints)/sizeof(*BRBCashCheckpoints),
+    0x40,    // forkId
 };
 
 static const BRChainParams BRBCashTestNetParams = {
@@ -167,7 +168,8 @@ static const BRChainParams BRBCashTestNetParams = {
     SERVICES_NODE_BCASH, // services
     BRBCashTestNetVerifyDifficulty,
     BRBCashTestNetCheckpoints,
-    sizeof(BRBCashTestNetCheckpoints)/sizeof(*BRBCashTestNetCheckpoints)
+    sizeof(BRBCashTestNetCheckpoints)/sizeof(*BRBCashTestNetCheckpoints),
+    0x40,    // forkId
 };
 
 #endif // BRChainParams_h

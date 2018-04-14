@@ -282,7 +282,8 @@ Java_com_breadwallet_core_BRCorePeer_createJniCorePeer
 JNIEXPORT jlong
 JNICALL Java_com_breadwallet_core_BRCorePeer_createJniCorePeerMagic
         (JNIEnv *env, jclass thisClass,
-         jlong magicNumber) {
-    BRPeer *result = BRPeerNew((uint32_t) magicNumber);
+         jlong magicNumber,
+         jint forkId) {
+    BRPeer *result = BRPeerNew((uint32_t) magicNumber, forkId);
     return (jlong) result;
 }

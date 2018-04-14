@@ -80,7 +80,7 @@ public class BRCoreWalletManager implements
      */
 
     protected BRCoreWallet createWallet () {
-        return new BRCoreWallet (loadTransactions(), masterPubKey,
+        return new BRCoreWallet (loadTransactions(), masterPubKey, getForkId(),
                 createWalletListener());
     }
 
@@ -159,7 +159,7 @@ public class BRCoreWalletManager implements
      * @return the transaction hash
      */
     public byte[] signAndPublishTransaction (BRCoreTransaction transaction, byte[] phrase) {
-        getWallet().signTransaction(transaction, getForkId(), phrase);
+        getWallet().signTransaction(transaction, phrase);
         getPeerManager().publishTransaction(transaction);
         return transaction.getHash();
     }
@@ -171,6 +171,9 @@ public class BRCoreWalletManager implements
         else if (chainParams == BRCoreChainParams.mainnetBcashChainParams
                 || chainParams == BRCoreChainParams.testnetBcashChainParams)
             return 0x40;
+        else if (chainParams == BRCoreChainParams.mainnetMotaChainParams
+                || chainParams == BRCoreChainParams.testnetMotaChainParams)
+            return 0x20;
         else return -1;
     }
 
@@ -338,6 +341,10 @@ public class BRCoreWalletManager implements
             return "Bitcash Mainnet";
         else if (chainParams == BRCoreChainParams.testnetBcashChainParams)
             return "Bitcash Testnet";
+        else if (chainParams == BRCoreChainParams.mainnetMotaChainParams)
+            return "MotaCoin Mainnet";
+        else if (chainParams == BRCoreChainParams.testnetMotaChainParams)
+            return "MotaCoin Testnet";
         return "Unknown";
     }
     // ============================================================================================
