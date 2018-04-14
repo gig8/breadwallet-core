@@ -638,7 +638,7 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         BRCoreWallet.Listener walletListener = getWalletListener();
 
-        BRCoreWallet w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, 0, walletListener);
+        BRCoreWallet w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, 0x00, 0x00, walletListener);
         asserting(null != w);
         BRCoreAddress recvAddr = w.getReceiveAddress();
 
@@ -712,7 +712,7 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         System.out.println("            Init w/ One SATOSHI");
 
-        w = new BRCoreWallet(new BRCoreTransaction[] { tx }, mpk, 0, walletListener);
+        w = new BRCoreWallet(new BRCoreTransaction[] { tx }, mpk, 0x00, 0x00, walletListener);
         asserting (SATOSHIS == w.getBalance());
         asserting (w.getAllAddresses().length == 1 + SEQUENCE_GAP_LIMIT_EXTERNAL + SEQUENCE_GAP_LIMIT_INTERNAL);
 
@@ -755,7 +755,7 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         byte[] mpkSerialized = mpk.serialize();
         mpk = new BRCoreMasterPubKey(mpkSerialized, false);
-        w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, 0, walletListener);
+        w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, 0x00, 0x00, walletListener);
 
         tx = new BRCoreTransaction();
         tx.addInput(
@@ -849,19 +849,19 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         BRCoreMasterPubKey mpk = new BRCoreMasterPubKey(phrase, true);
 
-        BRCoreWallet w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, 0, getWalletListener());
+        BRCoreWallet w = new BRCoreWallet(new BRCoreTransaction[]{}, mpk, 0x00, 0x00, getWalletListener());
         asserting(null != w);
 
         System.out.println("            Peers");
 
-        BRCorePeer peer = new BRCorePeer(1, w.getForkId());
+        BRCorePeer peer = new BRCorePeer(1, w.getForkId(), w.getAlgoId());
         BRCorePeer[] peers = new BRCorePeer[1024];
         for (int i = 0; i < 1024; i++)
             peers[i] = peer;
 
         System.out.println("            Blocks");
 
-        BRCoreMerkleBlock block = new BRCoreMerkleBlock(getMerkleBlockBytes(), 100001);
+        BRCoreMerkleBlock block = new BRCoreMerkleBlock(w.getAlgoId(), getMerkleBlockBytes(), 100001);
         asserting (null != block);
         asserting (100001 == block.getHeight());
 

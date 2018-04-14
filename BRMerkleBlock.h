@@ -26,6 +26,7 @@
 #define BRMerkleBlock_h
 
 #include "BRInt.h"
+#include "BRConst.h"
 #include <stddef.h>
 #include <inttypes.h>
 
@@ -64,7 +65,7 @@ BRMerkleBlock *BRMerkleBlockCopy(const BRMerkleBlock *block);
 
 // buf must contain either a serialized merkleblock or header
 // returns a merkle block struct that must be freed by calling BRMerkleBlockFree()
-BRMerkleBlock *BRMerkleBlockParse(const uint8_t *buf, size_t bufLen);
+BRMerkleBlock *BRMerkleBlockParse(int algoId, const uint8_t *buf, size_t bufLen);
 
 // returns number of bytes written to buf, or total bufLen needed if buf is NULL (block->height is not serialized)
 size_t BRMerkleBlockSerialize(const BRMerkleBlock *block, uint8_t *buf, size_t bufLen);

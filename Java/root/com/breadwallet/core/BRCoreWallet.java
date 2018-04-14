@@ -61,9 +61,10 @@ public class BRCoreWallet extends BRCoreJniReference
     public BRCoreWallet(BRCoreTransaction[] transactions,
                         BRCoreMasterPubKey masterPubKey,
                         int forkId,
+                        int algoId,
                         Listener listener)
     {
-        super (createJniCoreWallet(transactions, masterPubKey, forkId));
+        super (createJniCoreWallet(transactions, masterPubKey, forkId, algoId));
         assert (null != listener);
         this.listener = new WeakReference<>(listener);
 
@@ -76,7 +77,7 @@ public class BRCoreWallet extends BRCoreJniReference
 
     protected static native long createJniCoreWallet (BRCoreTransaction[] transactions,
                                                       BRCoreMasterPubKey masterPubKey,
-                                                      int forkId);
+                                                      int forkId, int algoId);
 
     protected native void installListener (Listener listener);
 
@@ -309,6 +310,8 @@ public class BRCoreWallet extends BRCoreJniReference
     public native long getMaxOutputAmount ();
 
     public native int getForkId ();
+
+    public native int getAlgoId ();
 
     // local amount
 

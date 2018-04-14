@@ -108,7 +108,7 @@ typedef struct {
 // NOTE: BRPeer functions are not thread-safe
 
 // returns a newly allocated BRPeer struct that must be freed by calling BRPeerFree()
-BRPeer *BRPeerNew(uint32_t magicNumber, int forkId);
+BRPeer *BRPeerNew(uint32_t magicNumber, int forkId, int algoId);
 
 // info is a void pointer that will be passed along with each callback call
 // void connected(void *) - called when peer handshake completes successfully

@@ -13,7 +13,7 @@ extern "C" {
  * Signature: ([BI)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreMerkleBlock_createJniCoreMerkleBlock
-  (JNIEnv *, jclass, jbyteArray, jint);
+  (JNIEnv *, jclass, jint, jbyteArray, jint);
 
 /*
  * Class:     com_breadwallet_core_BRCoreMerkleBlock

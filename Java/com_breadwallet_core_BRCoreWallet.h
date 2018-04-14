@@ -13,7 +13,7 @@ extern "C" {
  * Signature: ([Lcom/breadwallet/core/BRCoreTransaction;Lcom/breadwallet/core/BRCoreMasterPubKey;)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreWallet_createJniCoreWallet
-  (JNIEnv *, jclass, jobjectArray, jobject, jint);
+  (JNIEnv *, jclass, jobjectArray, jobject, jint, jint);
 
 /*
  * Class:     com_breadwallet_core_BRCoreWallet
@@ -285,6 +285,14 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreWallet_getMaxOutputAmoun
  * Signature: ()J
  */
 JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getForkId
+        (JNIEnv *, jobject);
+
+/*
+ * Class:     com_breadwallet_core_BRCoreWallet
+ * Method:    getMaxOutputAmount
+ * Signature: ()J
+ */
+JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getAlgoId
         (JNIEnv *, jobject);
 
 /*

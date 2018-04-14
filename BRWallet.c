@@ -48,6 +48,7 @@ struct BRWalletStruct {
     void (*txDeleted)(void *info, UInt256 txHash, int notifyUser, int recommendRescan);
     pthread_mutex_t lock;
     int forkId;
+    int algoId;
 };
 
 inline static uint64_t _txFee(uint64_t feePerKb, size_t size)
@@ -246,7 +247,7 @@ static void _BRWalletUpdateBalance(BRWallet *wallet)
 }
 
 // allocates and populates a BRWallet struct which must be freed by calling BRWalletFree()
-BRWallet *BRWalletNew(BRTransaction *transactions[], size_t txCount, BRMasterPubKey mpk, int forkId)
+BRWallet *BRWalletNew(BRTransaction *transactions[], size_t txCount, BRMasterPubKey mpk, int forkId, int algoId)
 {
     BRWallet *wallet = NULL;
     BRTransaction *tx;
@@ -269,6 +270,7 @@ BRWallet *BRWalletNew(BRTransaction *transactions[], size_t txCount, BRMasterPub
     wallet->allAddrs = BRSetNew(BRAddressHash, BRAddressEq, txCount + 100);
     pthread_mutex_init(&wallet->lock, NULL);
     wallet->forkId = forkId;
+    wallet->algoId = algoId;
 
     for (size_t i = 0; transactions && i < txCount; i++) {
         tx = transactions[i];
@@ -1166,6 +1168,13 @@ int BRWalletForkId(BRWallet *wallet)
 {
     assert(wallet != NULL);
     return wallet->forkId;
+}
+
+// algoId
+int BRWalletAlgoId(BRWallet *wallet)
+{
+    assert(wallet != NULL);
+    return wallet->algoId;
 }
 
 static void _setApplyFreeTx(void *info, void *tx)

@@ -80,7 +80,7 @@ public class BRCoreWalletManager implements
      */
 
     protected BRCoreWallet createWallet () {
-        return new BRCoreWallet (loadTransactions(), masterPubKey, getForkId(),
+        return new BRCoreWallet (loadTransactions(), masterPubKey, getForkId(), getAlgoId(),
                 createWalletListener());
     }
 
@@ -165,16 +165,11 @@ public class BRCoreWalletManager implements
     }
 
     protected int getForkId () {
-        if (chainParams == BRCoreChainParams.mainnetChainParams
-                || chainParams == BRCoreChainParams.testnetChainParams)
-            return 0x00;
-        else if (chainParams == BRCoreChainParams.mainnetBcashChainParams
-                || chainParams == BRCoreChainParams.testnetBcashChainParams)
-            return 0x40;
-        else if (chainParams == BRCoreChainParams.mainnetMotaChainParams
-                || chainParams == BRCoreChainParams.testnetMotaChainParams)
-            return 0x20;
-        else return -1;
+        return chainParams.getJniForkId();
+    }
+
+    protected int getAlgoId () {
+        return chainParams.getJniAlgoId();
     }
 
     //

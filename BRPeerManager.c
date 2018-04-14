@@ -1629,7 +1629,7 @@ void BRPeerManagerConnect(BRPeerManager *manager)
                 info = calloc(1, sizeof(*info));
                 assert(info != NULL);
                 info->manager = manager;
-                info->peer = BRPeerNew(manager->params->magicNumber, manager->params->forkId);
+                info->peer = BRPeerNew(manager->params->magicNumber, manager->params->forkId, manager->params->algoId);
                 *info->peer = peers[i];
                 array_rm(peers, i);
                 array_add(manager->connectedPeers, info->peer);

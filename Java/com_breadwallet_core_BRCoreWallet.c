@@ -72,7 +72,8 @@ Java_com_breadwallet_core_BRCoreWallet_createJniCoreWallet
         (JNIEnv *env, jclass thisClass,
          jobjectArray objTransactionsArray,
          jobject objMasterPubKey,
-         jint forkId) {
+         jint forkId,
+         jint algoId) {
 
     BRMasterPubKey *masterPubKey = (BRMasterPubKey *) getJNIReference(env, objMasterPubKey);
 
@@ -87,7 +88,7 @@ Java_com_breadwallet_core_BRCoreWallet_createJniCoreWallet
         (*env)->DeleteLocalRef (env, objTransaction);
     }
 
-    BRWallet *wallet = BRWalletNew(transactions, transactionsCount, *masterPubKey, forkId);
+    BRWallet *wallet = BRWalletNew(transactions, transactionsCount, *masterPubKey, forkId, algoId);
 
     if (NULL != transactions) free (transactions);
 
@@ -652,6 +653,17 @@ JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getForkId
         (JNIEnv *env, jobject thisObject) {
     BRWallet *wallet = (BRWallet *) getJNIReference (env, thisObject);
     return (jint) BRWalletForkId (wallet);
+}
+
+/*
+ * Class:     com_breadwallet_core_BRCoreWallet
+ * Method:    getMaxOutputAmount
+ * Signature: ()J
+ */
+JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getAlgoId
+        (JNIEnv *env, jobject thisObject) {
+    BRWallet *wallet = (BRWallet *) getJNIReference (env, thisObject);
+    return (jint) BRWalletAlgoId (wallet);
 }
 
 /*

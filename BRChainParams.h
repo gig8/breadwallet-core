@@ -45,6 +45,7 @@ typedef struct {
     const BRCheckPoint *checkpoints;
     size_t checkpointsCount;
     int forkId;
+    int algoId;
 } BRChainParams;
 
 static const char *BRMainNetDNSSeeds[] = {
@@ -136,6 +137,7 @@ static const BRChainParams BRMainNetParams = {
     BRMainNetCheckpoints,
     sizeof(BRMainNetCheckpoints)/sizeof(*BRMainNetCheckpoints),
     0x00,   // forkId
+    ALGO_SHA256,   // algoId
 };
 
 static const BRChainParams BRTestNetParams = {
@@ -147,6 +149,7 @@ static const BRChainParams BRTestNetParams = {
     BRTestNetCheckpoints,
     sizeof(BRTestNetCheckpoints)/sizeof(*BRTestNetCheckpoints),
     0x00,   // forkId
+    ALGO_SHA256,   // algoId
 };
 
 #endif // BRChainParams_h

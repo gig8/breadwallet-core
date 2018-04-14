@@ -128,6 +128,7 @@ typedef struct {
     void (*volatile mempoolCallback)(void *info, int success);
     pthread_t thread;
     int forkId;
+    int algoId;
 } BRPeerContext;
 
 void BRPeerSendVersionMessage(BRPeer *peer);
@@ -482,7 +483,7 @@ static int _BRPeerAcceptHeadersMessage(BRPeer *peer, const uint8_t *msg, size_t 
             else BRPeerSendGetheaders(peer, locators, 2, UINT256_ZERO);
 
             for (size_t i = 0; r && i < count; i++) {
-                BRMerkleBlock *block = BRMerkleBlockParse(&msg[off + 81*i], 81);
+                BRMerkleBlock *block = BRMerkleBlockParse(ctx->algoId, &msg[off + 81*i], 81);
                 
                 if (! BRMerkleBlockIsValid(block, (uint32_t)now)) {
                     peer_log(peer, "invalid block header: %s", u256hex(block->blockHash));
@@ -693,7 +694,7 @@ static int _BRPeerAcceptMerkleblockMessage(BRPeer *peer, const uint8_t *msg, siz
     // a merkleblock message, the remote node is expected to send tx messages for the tx referenced in the block. When a
     // non-tx message is received we should have all the tx in the merkleblock.
     BRPeerContext *ctx = (BRPeerContext *)peer;
-    BRMerkleBlock *block = BRMerkleBlockParse(msg, msgLen);
+    BRMerkleBlock *block = BRMerkleBlockParse(ctx->algoId, msg, msgLen);
     int r = 1;
   
     if (! block) {
@@ -1047,7 +1048,7 @@ static void _dummyThreadCleanup(void *info)
 }
 
 // returns a newly allocated BRPeer struct that must be freed by calling BRPeerFree()
-BRPeer *BRPeerNew(uint32_t magicNumber, int forkId)
+BRPeer *BRPeerNew(uint32_t magicNumber, int forkId, int algoId)
 {
     BRPeerContext *ctx = calloc(1, sizeof(*ctx));
     
@@ -1066,6 +1067,7 @@ BRPeer *BRPeerNew(uint32_t magicNumber, int forkId)
     ctx->socket = -1;
     ctx->threadCleanup = _dummyThreadCleanup;
     ctx->forkId = forkId;
+    ctx->algoId = algoId;
     return &ctx->peer;
 }
 

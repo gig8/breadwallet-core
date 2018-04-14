@@ -159,6 +159,7 @@ static const BRChainParams BRBCashParams = {
     BRBCashCheckpoints,
     sizeof(BRBCashCheckpoints)/sizeof(*BRBCashCheckpoints),
     0x40,    // forkId
+    ALGO_SHA256,    // algoId
 };
 
 static const BRChainParams BRBCashTestNetParams = {
@@ -170,6 +171,7 @@ static const BRChainParams BRBCashTestNetParams = {
     BRBCashTestNetCheckpoints,
     sizeof(BRBCashTestNetCheckpoints)/sizeof(*BRBCashTestNetCheckpoints),
     0x40,    // forkId
+    ALGO_SHA256,    // algoId
 };
 
 #endif // BRChainParams_h

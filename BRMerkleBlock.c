@@ -24,6 +24,7 @@
 
 #include "BRMerkleBlock.h"
 #include "BRCrypto.h"
+#include "mota/BRX13Crypto.h"
 #include "BRAddress.h"
 #include <stdlib.h>
 #include <inttypes.h>
@@ -98,7 +99,7 @@ BRMerkleBlock *BRMerkleBlockCopy(const BRMerkleBlock *block)
 
 // buf must contain either a serialized merkleblock or header
 // returns a merkle block struct that must be freed by calling BRMerkleBlockFree()
-BRMerkleBlock *BRMerkleBlockParse(const uint8_t *buf, size_t bufLen)
+BRMerkleBlock *BRMerkleBlockParse(int algoId, const uint8_t *buf, size_t bufLen)
 {
     BRMerkleBlock *block = (buf && 80 <= bufLen) ? BRMerkleBlockNew() : NULL;
     size_t off = 0, len = 0;
@@ -134,8 +135,12 @@ BRMerkleBlock *BRMerkleBlockParse(const uint8_t *buf, size_t bufLen)
             block->flags = (off + len <= bufLen) ? malloc(len) : NULL;
             if (block->flags) memcpy(block->flags, &buf[off], len);
         }
-        
-        BRSHA256_2(&block->blockHash, buf, 80);
+
+        if (algoId == ALGO_X13) {
+            BRX13(&block->blockHash, buf, 80);
+        } else {    // default
+            BRSHA256_2(&block->blockHash, buf, 80);
+        }
     }
     
     return block;

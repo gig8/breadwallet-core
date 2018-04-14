@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
+#include <BRChainParams.h>
 #include "BRCoreJni.h"
 #include "BRChainParams.h"
 #include "bcash/BRBCashParams.h"
@@ -38,6 +39,30 @@ JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniMagicNu
 {
     BRChainParams *params = (BRChainParams *) getJNIReference(env, thisObject);
     return params->magicNumber;
+}
+
+/*
+ * Class:     com_breadwallet_core_BRCoreChainParams
+ * Method:    getJniMagicNumber
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniForkId
+        (JNIEnv *env, jobject thisObject)
+{
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, thisObject);
+    return params->forkId;
+}
+
+/*
+ * Class:     com_breadwallet_core_BRCoreChainParams
+ * Method:    getJniMagicNumber
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniAlgoId
+        (JNIEnv *env, jobject thisObject)
+{
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, thisObject);
+    return params->algoId;
 }
 
 /*

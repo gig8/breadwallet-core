@@ -36,6 +36,10 @@ public class BRCoreChainParams extends BRCoreJniReference {
     //
     public native int getJniMagicNumber ();
 
+    public native int getJniForkId ();
+
+    public native int getJniAlgoId();
+
     //
     //
     //

@@ -33,6 +33,7 @@
 JNIEXPORT jlong JNICALL
 Java_com_breadwallet_core_BRCoreMerkleBlock_createJniCoreMerkleBlock
         (JNIEnv *env, jclass thisClass,
+         jint algoId,
          jbyteArray blockArray,
          jint blockHeight) {
 
@@ -40,7 +41,7 @@ Java_com_breadwallet_core_BRCoreMerkleBlock_createJniCoreMerkleBlock
     jbyte *blockBytes = (*env)->GetByteArrayElements(env, blockArray, 0);
 
     assert (NULL != blockBytes);
-    BRMerkleBlock *block = BRMerkleBlockParse((const uint8_t *) blockBytes, (size_t) blockLength);
+    BRMerkleBlock *block = BRMerkleBlockParse(algoId, (const uint8_t *) blockBytes, (size_t) blockLength);
     assert (NULL != block);
     if (blockHeight != -1)
         block->height = (uint32_t) blockHeight;

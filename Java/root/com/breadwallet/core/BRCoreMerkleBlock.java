@@ -31,8 +31,8 @@ import java.util.Arrays;
  */
 public class BRCoreMerkleBlock extends BRCoreJniReference {
 
-    public BRCoreMerkleBlock(byte[] block, int blockHeight) {
-        this (createJniCoreMerkleBlock (block, blockHeight));
+    public BRCoreMerkleBlock(int algoId, byte[] block, int blockHeight) {
+        this (createJniCoreMerkleBlock (algoId, block, blockHeight));
     }
 
     protected BRCoreMerkleBlock (long jniReferenceAddress) {
@@ -44,7 +44,7 @@ public class BRCoreMerkleBlock extends BRCoreJniReference {
         this (createJniCoreMerkleBlockEmpty());
     }
 
-    private static native long createJniCoreMerkleBlock (byte[] block, int blockHeight);
+    private static native long createJniCoreMerkleBlock (int algoId, byte[] block, int blockHeight);
 
     // Test
     private static native long createJniCoreMerkleBlockEmpty ();

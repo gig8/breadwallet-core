@@ -59,7 +59,7 @@ inline static int BRUTXOEq(const void *utxo, const void *otherUtxo)
 typedef struct BRWalletStruct BRWallet;
 
 // allocates and populates a BRWallet struct that must be freed by calling BRWalletFree()
-BRWallet *BRWalletNew(BRTransaction *transactions[], size_t txCount, BRMasterPubKey mpk, int forkId);
+BRWallet *BRWalletNew(BRTransaction *transactions[], size_t txCount, BRMasterPubKey mpk, int forkId, int algoId);
 
 // not thread-safe, set callbacks once after BRWalletNew(), before calling other BRWallet functions
 // info is a void pointer that will be passed along with each callback call
@@ -190,6 +190,9 @@ uint64_t BRWalletMaxOutputAmount(BRWallet *wallet);
 
 // forkId
 int BRWalletForkId(BRWallet *wallet);
+
+// algoId
+int BRWalletAlgoId(BRWallet *wallet);
 
 // frees memory allocated for wallet, and calls BRTransactionFree() for all registered transactions
 void BRWalletFree(BRWallet *wallet);
