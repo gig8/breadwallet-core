@@ -28,6 +28,7 @@
 #include "BRArray.h"
 #include "BRInt.h"
 #include "BRChainParams.h"
+#include "BRMerkleBlock.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
@@ -1118,7 +1119,7 @@ static int _BRPeerManagerVerifyBlock(BRPeerManager *manager, BRMerkleBlock *bloc
     }
 
     // verify block difficulty
-    if (r && ! manager->params->verifyDifficulty(block, manager->blocks)) {
+    if (r && ! manager->params->verifyDifficulty(block, manager->blocks, manager->params->maxProofOfWork, manager->params->maxProofOfStake)) {
         peer_log(peer, "relayed block with invalid difficulty target %x, blockHash: %s", block->target,
                  u256hex(block->blockHash));
         r = 0;
@@ -1152,6 +1153,16 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block)
     assert(txHashes != NULL);
     txCount = BRMerkleBlockTxHashes(block, txHashes, txCount);
     pthread_mutex_lock(&manager->lock);
+
+//    if (manager->params->magicNumber == 0x4a304a30) {
+//        // some sanity checking
+//        UInt256 genesisHash = UInt256Reverse(manager->params->checkpoints[0].hash);
+//        BRMerkleBlock *genesis = BRSetGet(manager->blocks, &genesisHash);
+//        assert(genesis != NULL);
+//        peer_log(&BR_PEER_NONE, "genesis BRkey: %08x", genesisHash.u32[0]);
+//        peer_log(&BR_PEER_NONE, "prevBlock BRkey: %08x", block->prevBlock.u32[0]);
+//    }
+
     prev = BRSetGet(manager->blocks, &block->prevBlock);
 
     if (prev) {
@@ -1201,7 +1212,7 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block)
     }
     else if (! prev) { // block is an orphan
         peer_log(peer, "relayed orphan block %s, previous %s, last block is %s, height %"PRIu32,
-                 u256hex(block->blockHash), u256hex(block->prevBlock), u256hex(manager->lastBlock->blockHash),
+                 u256hex(UInt256Reverse(block->blockHash)), u256hex(UInt256Reverse(block->prevBlock)), u256hex(UInt256Reverse(manager->lastBlock->blockHash)),
                  manager->lastBlock->height);
         
         if (block->timestamp + 7*24*60*60 < time(NULL)) { // ignore orphans older than one week ago
@@ -1489,6 +1500,14 @@ BRPeerManager *BRPeerManagerNew(const BRChainParams *params, BRWallet *wallet, u
         if (i == 0 || block->timestamp + 7*24*60*60 < manager->earliestKeyTime) manager->lastBlock = block;
     }
 
+    if (manager->params->magicNumber == 0x4a304a30) {
+        // some sanity checking
+        UInt256 genesisHash = UInt256Reverse(manager->params->checkpoints[0].hash);
+        BRMerkleBlock *genesis = BRSetGet(manager->blocks, &genesisHash);
+        assert(genesis != NULL);
+        peer_log(&BR_PEER_NONE, "genesis BRkey: %08x", genesisHash.u32[0]);
+    }
+
     block = NULL;
     
     for (size_t i = 0; blocks && i < blocksCount; i++) {
@@ -1629,7 +1648,7 @@ void BRPeerManagerConnect(BRPeerManager *manager)
                 info = calloc(1, sizeof(*info));
                 assert(info != NULL);
                 info->manager = manager;
-                info->peer = BRPeerNew(manager->params->magicNumber, manager->params->forkId, manager->params->algoId);
+                info->peer = BRPeerNew(manager->params);
                 *info->peer = peers[i];
                 array_rm(peers, i);
                 array_add(manager->connectedPeers, info->peer);

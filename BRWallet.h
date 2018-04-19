@@ -29,6 +29,7 @@
 #include "BRAddress.h"
 #include "BRBIP32Sequence.h"
 #include "BRInt.h"
+#include "BRChainParams.h"
 #include <string.h>
 
 #ifdef __cplusplus
@@ -59,7 +60,8 @@ inline static int BRUTXOEq(const void *utxo, const void *otherUtxo)
 typedef struct BRWalletStruct BRWallet;
 
 // allocates and populates a BRWallet struct that must be freed by calling BRWalletFree()
-BRWallet *BRWalletNew(BRTransaction *transactions[], size_t txCount, BRMasterPubKey mpk, int forkId, int algoId);
+BRWallet *BRWalletNew(BRTransaction *transactions[], size_t txCount, BRMasterPubKey mpk,
+                      const BRChainParams *params);
 
 // not thread-safe, set callbacks once after BRWalletNew(), before calling other BRWallet functions
 // info is a void pointer that will be passed along with each callback call
@@ -193,6 +195,12 @@ int BRWalletForkId(BRWallet *wallet);
 
 // algoId
 int BRWalletAlgoId(BRWallet *wallet);
+
+// protocolVersion
+int BRWalletProtocolVersion(BRWallet *wallet);
+
+// minProtoVersion
+int BRWalletMinProtoVersion(BRWallet *wallet);
 
 // frees memory allocated for wallet, and calls BRTransactionFree() for all registered transactions
 void BRWalletFree(BRWallet *wallet);

@@ -43,7 +43,7 @@ JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniMagicNu
 
 /*
  * Class:     com_breadwallet_core_BRCoreChainParams
- * Method:    getJniMagicNumber
+ * Method:    getJniForkId
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniForkId
@@ -55,7 +55,7 @@ JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniForkId
 
 /*
  * Class:     com_breadwallet_core_BRCoreChainParams
- * Method:    getJniMagicNumber
+ * Method:    getJniAlgoId
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniAlgoId
@@ -63,6 +63,30 @@ JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniAlgoId
 {
     BRChainParams *params = (BRChainParams *) getJNIReference(env, thisObject);
     return params->algoId;
+}
+
+/*
+ * Class:     com_breadwallet_core_BRCoreChainParams
+ * Method:    getJniProtocolVersion
+ * Signature: ()I
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniProtocolVersion
+        (JNIEnv *env, jobject thisObject)
+{
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, thisObject);
+    return (jlong) params->protocolVersion;
+}
+
+/*
+ * Class:     com_breadwallet_core_BRCoreChainParams
+ * Method:    getJniMinProtoVersion
+ * Signature: ()I
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniMinProtoVersion
+        (JNIEnv *env, jobject thisObject)
+{
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, thisObject);
+    return (jlong) params->minProtoVersion;
 }
 
 /*

@@ -46,8 +46,8 @@ static const char *BRMotaTestNetDNSSeeds[] = {
     bits: 0x1e0fffff
     Searching for genesis hash..
     genesis hash found!
-    nonce: 145590
-    genesis hash: 00000fea25f87416682baa54946a1d156909d0959588eb573a0ae16a64230c61
+    nonce: 158782
+    genesis hash: 00000db79f5fe2062d31f62b76bd37b1d31373614a8ef2a85f60bc30eb411500
 */
 static const BRCheckPoint BRMotaTestNetCheckpoints[] = {
     {       0, uint256("00000fea25f87416682baa54946a1d156909d0959588eb573a0ae16a64230c61"), 1521404888, 0x1e0fffff }
@@ -64,20 +64,25 @@ static const BRCheckPoint BRMotaTestNetCheckpoints[] = {
     bits: 0x1e0fffff
     Searching for genesis hash..
     genesis hash found!
-    nonce: 158782
-    genesis hash: 00000db79f5fe2062d31f62b76bd37b1d31373614a8ef2a85f60bc30eb411500
+    nonce: 145590
+    genesis hash: 00000fea25f87416682baa54946a1d156909d0959588eb573a0ae16a64230c61
 */
 static const BRCheckPoint BRMotaCheckpoints[] = {
-    {      0, uint256("00000db79f5fe2062d31f62b76bd37b1d31373614a8ef2a85f60bc30eb411500"), 1521404888, 0x1e0fffff }
+    {       0, uint256("00000fea25f87416682baa54946a1d156909d0959588eb573a0ae16a64230c61"), 1521404888, 0x1e0fffff },
+    {    9327, uint256("00000000003e457413b915a18a07f046b458f3d03bd884b37fc467f0aaaa2ba6"), 1523748132, 0x1b41dc07 }
 };
 
-static int BRMotaVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet)
+static int BRMotaVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet, long maxProofOfWork, long maxProofOfStake)
 {
     const BRMerkleBlock *previous, *b = NULL;
     uint32_t i;
 
     assert(block != NULL);
     assert(blockSet != NULL);
+
+
+    // forget about all this
+    return 1;
 
     // check if we hit a difficulty transition, and find previous transition block
     if ((block->height % BLOCK_DIFFICULTY_INTERVAL) == 0) {
@@ -87,10 +92,10 @@ static int BRMotaVerifyDifficulty(const BRMerkleBlock *block, const BRSet *block
     }
 
     previous = BRSetGet(blockSet, &block->prevBlock);
-    return BRMerkleBlockVerifyDifficulty(block, previous, (b) ? b->timestamp : 0);
+    return BRMerkleBlockVerifyDifficulty(block, previous, (b) ? b->timestamp : 0, maxProofOfWork, maxProofOfStake);
 }
 
-static int BRMotaTestNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet)
+static int BRMotaTestNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet, long maxProofOfWork, long maxProofOfStake)
 {
     return 1; // XXX skip testnet difficulty check for now
 }
@@ -98,25 +103,39 @@ static int BRMotaTestNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet
 static const BRChainParams BRMotaParams = {
     BRMotaDNSSeeds,
     17420,                // standardPort
-    0x304a304a,          // magicNumber
+    0x4a304a30,          // magicNumber
     0, // no services
     BRMotaVerifyDifficulty,
     BRMotaCheckpoints,
     sizeof(BRMotaCheckpoints)/sizeof(*BRMotaCheckpoints),
     0x20, // forkId
     ALGO_X13,   // algoId
+    70013,
+    60013,
+    0x1e0fffff, // bnProofOfWorkLimit(~uint256(0) >> 20);
+    0x1e0fffff, // may fail when we go to POS - bnProofOfStakeLimit(~uint256(0) >> 24);
+    80, // blockHeaderSize
+    2,  // blockHeaderSpacing
+    1500, // blockHeaderNLimit
 };
 
 static const BRChainParams BRMotaTestNetParams = {
     BRMotaTestNetDNSSeeds,
     26000,               // standardPort
-    0x304a304b,          // magicNumber
+    0x4b304a30,          // magicNumber
     0, // no services
     BRMotaTestNetVerifyDifficulty,
     BRMotaTestNetCheckpoints,
     sizeof(BRMotaTestNetCheckpoints)/sizeof(*BRMotaTestNetCheckpoints),
     0x20, // forkId
     ALGO_X13,   // algoId
+    70013,
+    60013,
+    0x1e0fffff, // bnProofOfWorkLimitTestNet(~uint256(0) >> 16);
+    0x1e0fffff, // may fail when we go to POS - bnProofOfStakeLimitTestNet(~uint256(0) >> 30);
+    80, // blockHeaderSize
+    2,  // blockHeaderSpacing
+    1500, // blockHeaderNLimit
 };
 
 #endif // BRMotaParams_h

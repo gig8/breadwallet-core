@@ -78,7 +78,7 @@ public class BRCoreMerkleBlock extends BRCoreJniReference {
      */
     public native byte[] serialize ();
 
-    public native boolean isValid (long currentTime);
+    public native boolean isValid (long currentTime, long maxProofOfWork, long maxProofOfStake);
 
     /**
      * True if the given hash is known to be included in the block.  [The 'blockHash' is not

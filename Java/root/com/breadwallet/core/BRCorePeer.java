@@ -131,8 +131,8 @@ public class BRCorePeer extends BRCoreJniReference {
         this(createJniCorePeer(peerAddress, peerPort, timeStamp));
     }
 
-    public BRCorePeer (int magicNumber, int forkId, int algoId) {
-        this (createJniCorePeerMagic(magicNumber, forkId, algoId));
+    public BRCorePeer (BRCoreChainParams params) {
+        this (createJniCoreParams(params));
     }
 
     protected BRCorePeer(long jniReferenceAddress) {
@@ -147,5 +147,5 @@ public class BRCorePeer extends BRCoreJniReference {
                                                   byte[] peerPort,
                                                   byte[] timeStamp);
 
-    private static native long createJniCorePeerMagic(long magicNumber, int forkId, int algoId);
+    private static native long createJniCoreParams(BRCoreChainParams params);
 }

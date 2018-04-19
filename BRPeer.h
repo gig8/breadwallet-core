@@ -29,6 +29,7 @@
 #include "BRMerkleBlock.h"
 #include "BRAddress.h"
 #include "BRInt.h"
+#include "BRChainParams.h"
 #include <stddef.h>
 #include <inttypes.h>
 
@@ -79,6 +80,7 @@ extern "C" {
 #define MSG_FILTERADD   "filteradd"
 #define MSG_FILTERCLEAR "filterclear"
 #define MSG_MERKLEBLOCK "merkleblock"
+#define MSG_BLOCK       "block"
 #define MSG_ALERT       "alert"
 #define MSG_REJECT      "reject"   // described in BIP61: https://github.com/bitcoin/bips/blob/master/bip-0061.mediawiki
 #define MSG_FEEFILTER   "feefilter"// described in BIP133 https://github.com/bitcoin/bips/blob/master/bip-0133.mediawiki
@@ -108,7 +110,7 @@ typedef struct {
 // NOTE: BRPeer functions are not thread-safe
 
 // returns a newly allocated BRPeer struct that must be freed by calling BRPeerFree()
-BRPeer *BRPeerNew(uint32_t magicNumber, int forkId, int algoId);
+BRPeer *BRPeerNew(const BRChainParams *params);
 
 // info is a void pointer that will be passed along with each callback call
 // void connected(void *) - called when peer handshake completes successfully

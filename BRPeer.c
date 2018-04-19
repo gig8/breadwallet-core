@@ -29,6 +29,7 @@
 #include "BRArray.h"
 #include "BRCrypto.h"
 #include "BRInt.h"
+#include "BRChainParams.h"
 #include <stdlib.h>
 #include <float.h>
 #include <inttypes.h>
@@ -47,8 +48,6 @@
 #define MAX_MSG_LENGTH     0x02000000
 #define MAX_GETDATA_HASHES 50000
 #define ENABLED_SERVICES   0ULL  // we don't provide full blocks to remote nodes
-#define PROTOCOL_VERSION   70013
-#define MIN_PROTO_VERSION  70002 // peers earlier than this protocol version not supported (need v0.9 txFee relay rules)
 #define LOCAL_HOST         ((UInt128) { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x01 })
 #define CONNECT_TIMEOUT    3.0
 #define MESSAGE_TIMEOUT    10.0
@@ -92,7 +91,7 @@ typedef enum {
 
 typedef struct {
     BRPeer peer; // superstruct on top of BRPeer
-    uint32_t magicNumber;
+    const BRChainParams *params;
     char host[INET6_ADDRSTRLEN];
     BRPeerStatus status;
     int waitingForNetwork;
@@ -127,8 +126,6 @@ typedef struct {
     void *volatile mempoolInfo;
     void (*volatile mempoolCallback)(void *info, int success);
     pthread_t thread;
-    int forkId;
-    int algoId;
 } BRPeerContext;
 
 void BRPeerSendVersionMessage(BRPeer *peer);
@@ -215,7 +212,7 @@ static int _BRPeerAcceptVersionMessage(BRPeer *peer, const uint8_t *msg, size_t 
                      off + strLen + sizeof(uint32_t));
             r = 0;
         }
-        else if (ctx->version < MIN_PROTO_VERSION) {
+        else if (ctx->version < ctx->params->minProtoVersion) {
             peer_log(peer, "protocol version %"PRIu32" not supported", ctx->version);
             r = 0;
         }
@@ -306,6 +303,11 @@ static int _BRPeerAcceptAddrMessage(BRPeer *peer, const uint8_t *msg, size_t msg
 static int _BRPeerAcceptInvMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen)
 {
     BRPeerContext *ctx = (BRPeerContext *)peer;
+
+    if (ctx->params->magicNumber == 0x4a304a30) {
+        peer_log(peer, "mota: _BRPeerAcceptInvMessage");
+    }
+
     size_t off = 0, count = (size_t)BRVarInt(msg, msgLen, &off);
     int r = 1;
     
@@ -378,7 +380,14 @@ static int _BRPeerAcceptInvMessage(BRPeer *peer, const uint8_t *msg, size_t msgL
             }
             
             _BRPeerAddKnownTxHashes(peer, txHashes, j);
-            if (j > 0 || blockCount > 0) BRPeerSendGetdata(peer, txHashes, j, blockHashes, blockCount);
+            if (j > 0 || blockCount > 0) {
+
+                if (ctx->params->magicNumber == 0x4a304a30) {
+                    peer_log(peer, "mota: calling BRPeerSendGetdata");
+                }
+
+                BRPeerSendGetdata(peer, txHashes, j, blockHashes, blockCount);
+            }
     
             // to improve chain download performance, if we received 500 block hashes, request the next 500 block hashes
             if (blockCount >= 500) {
@@ -402,7 +411,7 @@ static int _BRPeerAcceptInvMessage(BRPeer *peer, const uint8_t *msg, size_t msgL
 static int _BRPeerAcceptTxMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen)
 {
     BRPeerContext *ctx = (BRPeerContext *)peer;
-    BRTransaction *tx = BRTransactionParse(ctx->forkId, msg, msgLen);
+    BRTransaction *tx = BRTransactionParse(ctx->params->forkId, msg, msgLen);
     UInt256 txHash;
     int r = 1;
 
@@ -449,9 +458,25 @@ static int _BRPeerAcceptHeadersMessage(BRPeer *peer, const uint8_t *msg, size_t 
     size_t off = 0, count = (size_t)BRVarInt(msg, msgLen, &off);
     int r = 1;
 
-    if (off == 0 || off + 81*count > msgLen) {
+    size_t blockSeparation = ctx->params->blockHeaderSize + ctx->params->blockHeaderSpacing;    // bitcoin is 81 though, but is motacoin 82?
+
+    char chunk[2*blockSeparation + 1];
+    /*
+    // print some chunks
+    for (size_t b = 0; b < 10; b++) {
+        size_t blockstart = off + b * blockSeparation;
+        for (size_t j = 0; j < blockSeparation; j++)
+        {
+            sprintf(&chunk[j*2], "%02X", msg[j + blockstart]);
+        }
+        chunk[2*blockSeparation] = '\0';
+        peer_log(peer, "%s", chunk);
+    }
+    */
+
+    if (off == 0 || off + blockSeparation*count > msgLen) {
         peer_log(peer, "malformed headers message, length is %zu, should be %zu for %zu header(s)", msgLen,
-                 BRVarIntSize(count) + 81*count, count);
+                 BRVarIntSize(count) + blockSeparation*count, count);
         r = 0;
     }
     else {
@@ -459,36 +484,55 @@ static int _BRPeerAcceptHeadersMessage(BRPeer *peer, const uint8_t *msg, size_t 
     
         // To improve chain download performance, if this message contains 2000 headers then request the next 2000
         // headers immediately, and switch to requesting blocks when we receive a header newer than earliestKeyTime
-        uint32_t timestamp = (count > 0) ? UInt32GetLE(&msg[off + 81*(count - 1) + 68]) : 0;
-    
-        if (count >= 2000 || (timestamp > 0 && timestamp + 7*24*60*60 + BLOCK_MAX_TIME_DRIFT >= ctx->earliestKeyTime)) {
+        uint32_t timestamp = (count > 0) ? UInt32GetLE(&msg[off + blockSeparation*(count - 1) + 68]) : 0;
+
+        if (count >= ctx->params->blockHeaderNLimit || (timestamp > 0 && timestamp + 7*24*60*60 + BLOCK_MAX_TIME_DRIFT >= ctx->earliestKeyTime)) {
             size_t last = 0;
             time_t now = time(NULL);
             UInt256 locators[2];
-            
-            BRSHA256_2(&locators[0], &msg[off + 81*(count - 1)], 80);
-            BRSHA256_2(&locators[1], &msg[off], 80);
+
+            BRSHA256_2(&locators[0], &msg[off + blockSeparation*(count - 1)], ctx->params->blockHeaderSize);
+            BRSHA256_2(&locators[1], &msg[off], ctx->params->blockHeaderSize);
 
             if (timestamp > 0 && timestamp + 7*24*60*60 + BLOCK_MAX_TIME_DRIFT >= ctx->earliestKeyTime) {
                 // request blocks for the remainder of the chain
-                timestamp = (++last < count) ? UInt32GetLE(&msg[off + 81*last + 68]) : 0;
+                timestamp = (++last < count) ? UInt32GetLE(&msg[off + blockSeparation*last + 68]) : 0;
 
                 while (timestamp > 0 && timestamp + 7*24*60*60 + BLOCK_MAX_TIME_DRIFT < ctx->earliestKeyTime) {
-                    timestamp = (++last < count) ? UInt32GetLE(&msg[off + 81*last + 68]) : 0;
+                    timestamp = (++last < count) ? UInt32GetLE(&msg[off + blockSeparation*last + 68]) : 0;
                 }
                 
-                BRSHA256_2(&locators[0], &msg[off + 81*(last - 1)], 80);
+                BRSHA256_2(&locators[0], &msg[off + blockSeparation*(last - 1)], ctx->params->blockHeaderSize);
                 BRPeerSendGetblocks(peer, locators, 2, UINT256_ZERO);
             }
             else BRPeerSendGetheaders(peer, locators, 2, UINT256_ZERO);
 
             for (size_t i = 0; r && i < count; i++) {
-                BRMerkleBlock *block = BRMerkleBlockParse(ctx->algoId, &msg[off + 81*i], 81);
-                
-                if (! BRMerkleBlockIsValid(block, (uint32_t)now)) {
+                size_t start = off + blockSeparation*i;
+
+                BRMerkleBlock *block = BRMerkleBlockParse(ctx->params->algoId, &msg[start], ctx->params->blockHeaderSize);
+                peer_log(peer, "**** %zu %08x ****", i, ctx->params->magicNumber);
+
+                if (! BRMerkleBlockIsValid(block, (uint32_t)now, ctx->params->maxProofOfWork, ctx->params->maxProofOfStake)) {
                     peer_log(peer, "invalid block header: %s", u256hex(block->blockHash));
-                    BRMerkleBlockFree(block);
-                    r = 0;
+
+                    if (ctx->params->magicNumber == 0x4a304a30) {
+                        peer_log(peer, "motacoin PoS block at %zu", i);  // figure this out later
+//                        for (int b = 0; b < 1; b++) {
+//                            size_t blockstart = off + (b + i) * blockSeparation;
+//                            for (size_t j = 0; j < blockSeparation; j++)
+//                            {
+//                                sprintf(&chunk[j*2], "%02X", msg[j + blockstart]);
+//                            }
+//                            chunk[2*blockSeparation] = '\0';
+//                            peer_log(peer, "%s", chunk);
+//                        }
+                        ctx->relayedBlock(ctx->info, block);
+                    }
+                    else {
+                        BRMerkleBlockFree(block);
+                        r = 0;
+                    }
                 }
                 else if (ctx->relayedBlock) {
                     ctx->relayedBlock(ctx->info, block);
@@ -515,6 +559,11 @@ static int _BRPeerAcceptGetaddrMessage(BRPeer *peer, const uint8_t *msg, size_t 
 static int _BRPeerAcceptGetdataMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen)
 {
     BRPeerContext *ctx = (BRPeerContext *)peer;
+
+    if (ctx->params->magicNumber == 0x4a304a30) {
+        peer_log(peer, "mota: _BRPeerAcceptGetdataMessage");
+    }
+
     size_t off = 0, count = (size_t)BRVarInt(msg, msgLen, &off);
     int r = 1;
     
@@ -540,9 +589,9 @@ static int _BRPeerAcceptGetdataMessage(BRPeer *peer, const uint8_t *msg, size_t 
                 case inv_tx:
                     if (ctx->requestedTx) tx = ctx->requestedTx(ctx->info, hash);
 
-                    if (tx && BRTransactionSize(tx, ctx->forkId) < TX_MAX_SIZE) {
-                        uint8_t buf[BRTransactionSerialize(tx, ctx->forkId, NULL, 0)];
-                        size_t bufLen = BRTransactionSerialize(tx, ctx->forkId, buf, sizeof(buf));
+                    if (tx && BRTransactionSize(tx, ctx->params->forkId) < TX_MAX_SIZE) {
+                        uint8_t buf[BRTransactionSerialize(tx, ctx->params->forkId, NULL, 0)];
+                        size_t bufLen = BRTransactionSerialize(tx, ctx->params->forkId, buf, sizeof(buf));
                         char txHex[bufLen*2 + 1];
                         
                         for (size_t j = 0; j < bufLen; j++) {
@@ -694,14 +743,26 @@ static int _BRPeerAcceptMerkleblockMessage(BRPeer *peer, const uint8_t *msg, siz
     // a merkleblock message, the remote node is expected to send tx messages for the tx referenced in the block. When a
     // non-tx message is received we should have all the tx in the merkleblock.
     BRPeerContext *ctx = (BRPeerContext *)peer;
-    BRMerkleBlock *block = BRMerkleBlockParse(ctx->algoId, msg, msgLen);
+
+    if (ctx->params->magicNumber == 0x4a304a30) {
+        peer_log(peer, "**** %08x - msgLen=%zu ****", ctx->params->magicNumber, msgLen);
+        char chunk[2 * msgLen + 1];
+        // lets see the whole message
+        for (size_t j = 0; j < msgLen; j++) {
+            sprintf(&chunk[j * 2], "%02X", msg[j]);
+        }
+        chunk[2 * msgLen] = '\0';
+        peer_log(peer, "block: %s", chunk);
+    }
+
+    BRMerkleBlock *block = BRMerkleBlockParse(ctx->params->algoId, msg, msgLen);
     int r = 1;
-  
+
     if (! block) {
         peer_log(peer, "malformed merkleblock message with length: %zu", msgLen);
         r = 0;
     }
-    else if (! BRMerkleBlockIsValid(block, (uint32_t)time(NULL))) {
+    else if (! BRMerkleBlockIsValid(block, (uint32_t)time(NULL), ctx->params->maxProofOfWork, ctx->params->maxProofOfStake)) {
         peer_log(peer, "invalid merkleblock: %s", u256hex(block->blockHash));
         BRMerkleBlockFree(block);
         block = NULL;
@@ -834,6 +895,7 @@ static int _BRPeerAcceptMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen,
     else if (strncmp(MSG_NOTFOUND, type, 12) == 0) r = _BRPeerAcceptNotfoundMessage(peer, msg, msgLen);
     else if (strncmp(MSG_PING, type, 12) == 0) r = _BRPeerAcceptPingMessage(peer, msg, msgLen);
     else if (strncmp(MSG_PONG, type, 12) == 0) r = _BRPeerAcceptPongMessage(peer, msg, msgLen);
+    else if (strncmp(MSG_BLOCK, type, 12) == 0) r = _BRPeerAcceptMerkleblockMessage(peer, msg, msgLen);
     else if (strncmp(MSG_MERKLEBLOCK, type, 12) == 0) r = _BRPeerAcceptMerkleblockMessage(peer, msg, msgLen);
     else if (strncmp(MSG_REJECT, type, 12) == 0) r = _BRPeerAcceptRejectMessage(peer, msg, msgLen);
     else if (strncmp(MSG_FEEFILTER, type, 12) == 0) r = _BRPeerAcceptFeeFilterMessage(peer, msg, msgLen);
@@ -958,7 +1020,7 @@ static void *_peerThreadRoutine(void *arg)
                     ctx->mempoolTime = DBL_MAX;
                 }
                 
-                while (sizeof(uint32_t) <= len && UInt32GetLE(header) != ctx->magicNumber) {
+                while (sizeof(uint32_t) <= len && UInt32GetLE(header) != ctx->params->magicNumber) {
                     memmove(header, &header[1], --len); // consume one byte at a time until we find the magic number
                 }
                 
@@ -1048,12 +1110,12 @@ static void _dummyThreadCleanup(void *info)
 }
 
 // returns a newly allocated BRPeer struct that must be freed by calling BRPeerFree()
-BRPeer *BRPeerNew(uint32_t magicNumber, int forkId, int algoId)
+BRPeer *BRPeerNew(const BRChainParams *params)
 {
     BRPeerContext *ctx = calloc(1, sizeof(*ctx));
     
     assert(ctx != NULL);
-    ctx->magicNumber = magicNumber;
+    ctx->params = params;
     array_new(ctx->useragent, 40);
     array_new(ctx->knownBlockHashes, 10);
     array_new(ctx->currentBlockTxHashes, 10);
@@ -1066,8 +1128,6 @@ BRPeer *BRPeerNew(uint32_t magicNumber, int forkId, int algoId)
     ctx->disconnectTime = DBL_MAX;
     ctx->socket = -1;
     ctx->threadCleanup = _dummyThreadCleanup;
-    ctx->forkId = forkId;
-    ctx->algoId = algoId;
     return &ctx->peer;
 }
 
@@ -1265,7 +1325,7 @@ void BRPeerSendMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen, const ch
         struct timeval tv;
         int socket, error = 0;
         
-        UInt32SetLE(&buf[off], ctx->magicNumber);
+        UInt32SetLE(&buf[off], ctx->params->magicNumber);
         off += sizeof(uint32_t);
         strncpy((char *)&buf[off], type, 12);
         off += 12;
@@ -1281,7 +1341,11 @@ void BRPeerSendMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen, const ch
         if (socket < 0) error = ENOTCONN;
         
         while (socket >= 0 && ! error && msgLen < sizeof(buf)) {
-            n = send(socket, &buf[msgLen], sizeof(buf) - msgLen, MSG_NOSIGNAL);
+            // TU: this seems wrong, shouldn't we send to the socket the msg?
+            // in which case it should be &buf[0]]
+            size_t len = sizeof(buf) - msgLen;
+//            n = send(socket, &buf[msgLen], len, MSG_NOSIGNAL);
+            n = send(socket, &buf[0], len, MSG_NOSIGNAL);
             if (n >= 0) msgLen += n;
             if (n < 0 && errno != EWOULDBLOCK) error = errno;
             gettimeofday(&tv, NULL);
@@ -1302,7 +1366,7 @@ void BRPeerSendVersionMessage(BRPeer *peer)
     size_t off = 0, userAgentLen = strlen(USER_AGENT);
     uint8_t msg[80 + BRVarIntSize(userAgentLen) + userAgentLen + 5];
     
-    UInt32SetLE(&msg[off], PROTOCOL_VERSION); // version
+    UInt32SetLE(&msg[off], ctx->params->protocolVersion); // version
     off += sizeof(uint32_t);
     UInt64SetLE(&msg[off], ENABLED_SERVICES); // services
     off += sizeof(uint64_t);
@@ -1329,7 +1393,9 @@ void BRPeerSendVersionMessage(BRPeer *peer)
     UInt32SetLE(&msg[off], 0); // last block received
     off += sizeof(uint32_t);
     msg[off++] = 0; // relay transactions (0 for SPV bloom filter mode)
-    BRPeerSendMessage(peer, msg, sizeof(msg), MSG_VERSION);
+
+    size_t msgLen = sizeof(msg);
+    BRPeerSendMessage(peer, msg, msgLen, MSG_VERSION);
 }
 
 void BRPeerSendVerackMessage(BRPeer *peer)
@@ -1383,11 +1449,13 @@ void BRPeerSendMempool(BRPeer *peer, const UInt256 knownTxHashes[], size_t known
 
 void BRPeerSendGetheaders(BRPeer *peer, const UInt256 locators[], size_t locatorsCount, UInt256 hashStop)
 {
+    BRPeerContext *ctx = (BRPeerContext *)peer;
+
     size_t i, off = 0;
     size_t msgLen = sizeof(uint32_t) + BRVarIntSize(locatorsCount) + sizeof(*locators)*locatorsCount + sizeof(hashStop);
     uint8_t msg[msgLen];
     
-    UInt32SetLE(&msg[off], PROTOCOL_VERSION);
+    UInt32SetLE(&msg[off], ctx->params->protocolVersion);
     off += sizeof(uint32_t);
     off += BRVarIntSet(&msg[off], (off <= msgLen ? msgLen - off : 0), locatorsCount);
 
@@ -1408,11 +1476,13 @@ void BRPeerSendGetheaders(BRPeer *peer, const UInt256 locators[], size_t locator
 
 void BRPeerSendGetblocks(BRPeer *peer, const UInt256 locators[], size_t locatorsCount, UInt256 hashStop)
 {
+    BRPeerContext *ctx = (BRPeerContext *)peer;
+
     size_t i, off = 0;
     size_t msgLen = sizeof(uint32_t) + BRVarIntSize(locatorsCount) + sizeof(*locators)*locatorsCount + sizeof(hashStop);
     uint8_t msg[msgLen];
     
-    UInt32SetLE(&msg[off], PROTOCOL_VERSION);
+    UInt32SetLE(&msg[off], ctx->params->protocolVersion);
     off += sizeof(uint32_t);
     off += BRVarIntSet(&msg[off], (off <= msgLen ? msgLen - off : 0), locatorsCount);
     
@@ -1459,6 +1529,7 @@ void BRPeerSendInv(BRPeer *peer, const UInt256 txHashes[], size_t txCount)
 void BRPeerSendGetdata(BRPeer *peer, const UInt256 txHashes[], size_t txCount, const UInt256 blockHashes[],
                        size_t blockCount)
 {
+    BRPeerContext *ctx = (BRPeerContext *)peer;
     size_t i, off = 0, count = txCount + blockCount;
     
     if (count > MAX_GETDATA_HASHES) { // limit total hash count to MAX_GETDATA_HASHES
@@ -1478,7 +1549,11 @@ void BRPeerSendGetdata(BRPeer *peer, const UInt256 txHashes[], size_t txCount, c
         }
         
         for (i = 0; i < blockCount; i++) {
-            UInt32SetLE(&msg[off], inv_filtered_block);
+//            if (ctx->params->magicNumber == 0x4a304a30) {
+//                UInt32SetLE(&msg[off], inv_block);
+//            } else {
+                UInt32SetLE(&msg[off], inv_filtered_block);
+//            }
             off += sizeof(uint32_t);
             UInt256Set(&msg[off], blockHashes[i]);
             off += sizeof(UInt256);

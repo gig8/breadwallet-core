@@ -97,7 +97,7 @@ static const BRMerkleBlock *_medianBlock(const BRMerkleBlock *b0, const BRSet *b
     return (b0 && b1 && b2) ? b1 : NULL;
 }
 
-static int BRBCashVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet)
+static int BRBCashVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet, long maxProofOfWork, long maxProofOfStake)
 {
     int size, i, r = 1;
     const BRMerkleBlock *b, *first, *last;
@@ -145,7 +145,7 @@ static int BRBCashVerifyDifficulty(const BRMerkleBlock *block, const BRSet *bloc
     return r;
 }
 
-static int BRBCashTestNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet)
+static int BRBCashTestNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet, long maxProofOfWork, long maxProofOfStake)
 {
     return 1; // XXX skip testnet difficulty check for now
 }
@@ -160,6 +160,13 @@ static const BRChainParams BRBCashParams = {
     sizeof(BRBCashCheckpoints)/sizeof(*BRBCashCheckpoints),
     0x40,    // forkId
     ALGO_SHA256,    // algoId
+    70013,
+    70002, // peers earlier than this protocol version not supported (need v0.9 txFee relay rules)
+    0x1d00ffff,
+    0x1d00ffff,
+    80, // blockHeaderSize
+    1,  // blockHeaderSpacing
+    2000, // blockHeaderNLimit
 };
 
 static const BRChainParams BRBCashTestNetParams = {
@@ -172,6 +179,13 @@ static const BRChainParams BRBCashTestNetParams = {
     sizeof(BRBCashTestNetCheckpoints)/sizeof(*BRBCashTestNetCheckpoints),
     0x40,    // forkId
     ALGO_SHA256,    // algoId
+    70013,
+    70002, // peers earlier than this protocol version not supported (need v0.9 txFee relay rules)
+    0x1d00ffff,
+    0x1d00ffff,
+    80, // blockHeaderSize
+    1,  // blockHeaderSpacing
+    2000, // blockHeaderNLimit
 };
 
 #endif // BRChainParams_h

@@ -41,11 +41,18 @@ typedef struct {
     uint16_t standardPort;
     uint32_t magicNumber;
     uint64_t services;
-    int (*verifyDifficulty)(const BRMerkleBlock *block, const BRSet *blockSet); // blockSet must have last 2016 blocks
+    int (*verifyDifficulty)(const BRMerkleBlock *block, const BRSet *blockSet, long maxProofOfWork, long maxProofOfStake); // blockSet must have last 2016 blocks
     const BRCheckPoint *checkpoints;
     size_t checkpointsCount;
     int forkId;
     int algoId;
+    uint32_t protocolVersion;
+    uint32_t minProtoVersion;
+    uint32_t maxProofOfWork;
+    uint32_t maxProofOfStake;
+    size_t blockHeaderSize;
+    size_t blockHeaderSpacing;
+    size_t blockHeaderNLimit;
 } BRChainParams;
 
 static const char *BRMainNetDNSSeeds[] = {
@@ -104,7 +111,7 @@ static const BRCheckPoint BRTestNetCheckpoints[] = {
     { 1108800, uint256("00000000000288d9a219419d0607fb67cc324d4b6d2945ca81eaa5e739fab81e"), 1490751239, 0x1b09ecf0 }
 };
 
-static int BRMainNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet)
+static int BRMainNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet, long maxProofOfWork, long maxProofOfStake)
 {
     const BRMerkleBlock *previous, *b = NULL;
     uint32_t i;
@@ -120,10 +127,10 @@ static int BRMainNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *bl
     }
     
     previous = BRSetGet(blockSet, &block->prevBlock);
-    return BRMerkleBlockVerifyDifficulty(block, previous, (b) ? b->timestamp : 0);
+    return BRMerkleBlockVerifyDifficulty(block, previous, (b) ? b->timestamp : 0, maxProofOfWork, maxProofOfStake);
 }
 
-static int BRTestNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet)
+static int BRTestNetVerifyDifficulty(const BRMerkleBlock *block, const BRSet *blockSet, long maxProofOfWork, long maxProofOfStake)
 {
     return 1; // XXX skip testnet difficulty check for now
 }
@@ -138,6 +145,13 @@ static const BRChainParams BRMainNetParams = {
     sizeof(BRMainNetCheckpoints)/sizeof(*BRMainNetCheckpoints),
     0x00,   // forkId
     ALGO_SHA256,   // algoId
+    70013,
+    70002, // peers earlier than this protocol version not supported (need v0.9 txFee relay rules
+    0x1d00ffff, // bnProofOfWorkLimit(~uint256(0) >> 32);
+    0x1d00ffff,
+    80, // blockHeaderSize
+    1,  // blockHeaderSpacing
+    2000, // blockHeaderNLimit
 };
 
 static const BRChainParams BRTestNetParams = {
@@ -150,6 +164,13 @@ static const BRChainParams BRTestNetParams = {
     sizeof(BRTestNetCheckpoints)/sizeof(*BRTestNetCheckpoints),
     0x00,   // forkId
     ALGO_SHA256,   // algoId
+    70013,
+    70002, // peers earlier than this protocol version not supported (need v0.9 txFee relay rules)
+    0x1d00ffff,
+    0x1d00ffff,
+    80, // blockHeaderSize
+    1,  // blockHeaderSpacing
+    2000, // blockHeaderNLimit
 };
 
 #endif // BRChainParams_h

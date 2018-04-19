@@ -80,7 +80,8 @@ public class BRCoreWalletManager implements
      */
 
     protected BRCoreWallet createWallet () {
-        return new BRCoreWallet (loadTransactions(), masterPubKey, getForkId(), getAlgoId(),
+        return new BRCoreWallet (loadTransactions(), masterPubKey,
+                chainParams,
                 createWalletListener());
     }
 
@@ -170,6 +171,14 @@ public class BRCoreWalletManager implements
 
     protected int getAlgoId () {
         return chainParams.getJniAlgoId();
+    }
+
+    protected long getProtocolVersion () {
+        return chainParams.getJniProtocolVersion();
+    }
+
+    protected long getMinProtoVersion () {
+        return chainParams.getJniMinProtoVersion();
     }
 
     //

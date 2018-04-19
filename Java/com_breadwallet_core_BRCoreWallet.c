@@ -72,8 +72,7 @@ Java_com_breadwallet_core_BRCoreWallet_createJniCoreWallet
         (JNIEnv *env, jclass thisClass,
          jobjectArray objTransactionsArray,
          jobject objMasterPubKey,
-         jint forkId,
-         jint algoId) {
+         jobject params) {
 
     BRMasterPubKey *masterPubKey = (BRMasterPubKey *) getJNIReference(env, objMasterPubKey);
 
@@ -88,7 +87,8 @@ Java_com_breadwallet_core_BRCoreWallet_createJniCoreWallet
         (*env)->DeleteLocalRef (env, objTransaction);
     }
 
-    BRWallet *wallet = BRWalletNew(transactions, transactionsCount, *masterPubKey, forkId, algoId);
+    BRWallet *wallet = BRWalletNew(transactions, transactionsCount, *masterPubKey,
+                                   params);
 
     if (NULL != transactions) free (transactions);
 
@@ -646,7 +646,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreWallet_getMaxOutputAmoun
 
 /*
  * Class:     com_breadwallet_core_BRCoreWallet
- * Method:    getMaxOutputAmount
+ * Method:    getForkId
  * Signature: ()J
  */
 JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getForkId
@@ -657,13 +657,35 @@ JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getForkId
 
 /*
  * Class:     com_breadwallet_core_BRCoreWallet
- * Method:    getMaxOutputAmount
+ * Method:    getAlgoId
  * Signature: ()J
  */
 JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getAlgoId
         (JNIEnv *env, jobject thisObject) {
     BRWallet *wallet = (BRWallet *) getJNIReference (env, thisObject);
     return (jint) BRWalletAlgoId (wallet);
+}
+
+/*
+ * Class:     com_breadwallet_core_BRCoreWallet
+ * Method:    getProtocolVersion
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreWallet_getProtocolVersion
+        (JNIEnv *env, jobject thisObject) {
+    BRWallet *wallet = (BRWallet *) getJNIReference (env, thisObject);
+    return (jlong) BRWalletProtocolVersion (wallet);
+}
+
+/*
+ * Class:     com_breadwallet_core_BRCoreWallet
+ * Method:    getMinProtoVersion
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreWallet_getMinProtoVersion
+        (JNIEnv *env, jobject thisObject) {
+    BRWallet *wallet = (BRWallet *) getJNIReference (env, thisObject);
+    return (jlong) BRWalletMinProtoVersion (wallet);
 }
 
 /*

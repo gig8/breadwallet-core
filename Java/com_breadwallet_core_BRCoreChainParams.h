@@ -17,7 +17,7 @@ JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniMagicNu
 
 /*
  * Class:     com_breadwallet_core_BRCoreChainParams
- * Method:    getJniMagicNumber
+ * Method:    getJniForkId
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniForkId
@@ -25,10 +25,26 @@ JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniForkId
 
 /*
  * Class:     com_breadwallet_core_BRCoreChainParams
- * Method:    getJniMagicNumber
+ * Method:    getJniAlgoId
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniAlgoId
+        (JNIEnv *, jobject);
+
+/*
+ * Class:     com_breadwallet_core_BRCoreChainParams
+ * Method:    getJniProtocolVersion
+ * Signature: ()I
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniProtocolVersion
+        (JNIEnv *, jobject);
+
+/*
+ * Class:     com_breadwallet_core_BRCoreChainParams
+ * Method:    getJniMinProtoVersion
+ * Signature: ()I
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreChainParams_getJniMinProtoVersion
         (JNIEnv *, jobject);
 
 /*

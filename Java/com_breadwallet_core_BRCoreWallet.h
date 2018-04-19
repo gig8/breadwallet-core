@@ -13,7 +13,7 @@ extern "C" {
  * Signature: ([Lcom/breadwallet/core/BRCoreTransaction;Lcom/breadwallet/core/BRCoreMasterPubKey;)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreWallet_createJniCoreWallet
-  (JNIEnv *, jclass, jobjectArray, jobject, jint, jint);
+  (JNIEnv *, jclass, jobjectArray, jobject, jobject);
 
 /*
  * Class:     com_breadwallet_core_BRCoreWallet
@@ -281,7 +281,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreWallet_getMaxOutputAmoun
 
 /*
  * Class:     com_breadwallet_core_BRCoreWallet
- * Method:    getMaxOutputAmount
+ * Method:    getForkId
  * Signature: ()J
  */
 JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getForkId
@@ -289,10 +289,26 @@ JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getForkId
 
 /*
  * Class:     com_breadwallet_core_BRCoreWallet
- * Method:    getMaxOutputAmount
+ * Method:    getAlgoId
  * Signature: ()J
  */
 JNIEXPORT jint JNICALL Java_com_breadwallet_core_BRCoreWallet_getAlgoId
+        (JNIEnv *, jobject);
+
+/*
+ * Class:     com_breadwallet_core_BRCoreWallet
+ * Method:    getForkId
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreWallet_getProtocolVersion
+        (JNIEnv *, jobject);
+
+/*
+ * Class:     com_breadwallet_core_BRCoreWallet
+ * Method:    getAlgoId
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreWallet_getMinProtoVersion
         (JNIEnv *, jobject);
 
 /*

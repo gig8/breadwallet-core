@@ -215,9 +215,9 @@ JNIEXPORT jbyteArray JNICALL Java_com_breadwallet_core_BRCoreMerkleBlock_seriali
  */
 JNIEXPORT jboolean JNICALL
 Java_com_breadwallet_core_BRCoreMerkleBlock_isValid
-        (JNIEnv *env, jobject thisObject, jlong currentTime) {
+        (JNIEnv *env, jobject thisObject, jlong currentTime, jlong maxProofOfWork, jlong maxProofOfStake) {
     BRMerkleBlock *block = (BRMerkleBlock *) getJNIReference(env, thisObject);
-    return (jboolean) BRMerkleBlockIsValid (block, (uint32_t) currentTime);
+    return (jboolean) BRMerkleBlockIsValid (block, (uint32_t) currentTime, (uint32_t) maxProofOfWork, (uint32_t) maxProofOfStake);
 }
 
 /*

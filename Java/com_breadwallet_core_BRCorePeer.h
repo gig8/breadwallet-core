@@ -153,11 +153,11 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePeer_createJniCorePeer
 
 /*
  * Class:     com_breadwallet_core_BRCorePeer
- * Method:    createJniCorePeerMagic
+ * Method:    createJniCoreParams
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePeer_createJniCorePeerMagic
-  (JNIEnv *, jclass, jlong, jint, jint);
+JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePeer_createJniCoreParams
+  (JNIEnv *, jclass, jobject);
 
 #ifdef __cplusplus
 }

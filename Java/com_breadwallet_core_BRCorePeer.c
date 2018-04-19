@@ -23,6 +23,7 @@
 #include <malloc.h>
 #include <BRPeer.h>
 #include <BRInt.h>
+#include <BRChainParams.h>
 #include "BRCoreJni.h"
 #include "com_breadwallet_core_BRCorePeer.h"
 
@@ -276,15 +277,13 @@ Java_com_breadwallet_core_BRCorePeer_createJniCorePeer
 
 /*
  * Class:     com_breadwallet_core_BRCorePeer
- * Method:    createJniCorePeerMagic
+ * Method:    createJniCoreParams
  * Signature: (J)J
  */
 JNIEXPORT jlong
-JNICALL Java_com_breadwallet_core_BRCorePeer_createJniCorePeerMagic
+JNICALL Java_com_breadwallet_core_BRCorePeer_createJniCoreParams
         (JNIEnv *env, jclass thisClass,
-         jlong magicNumber,
-         jint forkId,
-         jint algoId) {
-    BRPeer *result = BRPeerNew((uint32_t) magicNumber, forkId, algoId);
+         jobject objParams) {
+    BRPeer *result = BRPeerNew(objParams);
     return (jlong) result;
 }

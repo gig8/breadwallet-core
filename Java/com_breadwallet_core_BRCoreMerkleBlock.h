@@ -109,7 +109,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_breadwallet_core_BRCoreMerkleBlock_seriali
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_breadwallet_core_BRCoreMerkleBlock_isValid
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     com_breadwallet_core_BRCoreMerkleBlock
