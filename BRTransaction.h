@@ -27,6 +27,7 @@
 
 #include "BRKey.h"
 #include "BRInt.h"
+#include "BRChainParams.h"
 #include <stddef.h>
 #include <inttypes.h>
 
@@ -66,9 +67,9 @@ typedef struct {
     uint32_t sequence;
 } BRTxInput;
 
-void BRTxInputSetAddress(BRTxInput *input, const char *address);
-void BRTxInputSetScript(BRTxInput *input, const uint8_t *script, size_t scriptLen);
-void BRTxInputSetSignature(BRTxInput *input, const uint8_t *signature, size_t sigLen);
+void BRTxInputSetAddress(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxInput *input, const char *address);
+void BRTxInputSetScript(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxInput *input, const uint8_t *script, size_t scriptLen);
+void BRTxInputSetSignature(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxInput *input, const uint8_t *signature, size_t sigLen);
 
 typedef struct {
     char address[75];
@@ -80,10 +81,11 @@ typedef struct {
 #define BR_TX_OUTPUT_NONE ((BRTxOutput) { "", 0, NULL, 0 })
 
 // when creating a BRTxOutput struct outside of a BRTransaction, set address or script to NULL when done to free memory
-void BRTxOutputSetAddress(BRTxOutput *output, const char *address);
-void BRTxOutputSetScript(BRTxOutput *output, const uint8_t *script, size_t scriptLen);
+void BRTxOutputSetAddress(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxOutput *output, const char *address);
+void BRTxOutputSetScript(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxOutput *output, const uint8_t *script, size_t scriptLen);
 
 typedef struct {
+    const BRChainParams *params;
     UInt256 txHash;
     uint32_t version;
     BRTxInput *inputs;
@@ -96,14 +98,14 @@ typedef struct {
 } BRTransaction;
 
 // returns a newly allocated empty transaction that must be freed by calling BRTransactionFree()
-BRTransaction *BRTransactionNew(void);
+BRTransaction *BRTransactionNew(const BRChainParams *params);
 
 // returns a deep copy of tx and that must be freed by calling BRTransactionFree()
 BRTransaction *BRTransactionCopy(const BRTransaction *tx);
 
 // buf must contain a serialized tx
 // retruns a transaction that must be freed by calling BRTransactionFree()
-BRTransaction *BRTransactionParse(int forkId, const uint8_t *buf, size_t bufLen);
+BRTransaction *BRTransactionParse(const BRChainParams *params, const uint8_t *buf, size_t bufLen);
 
 // returns number of bytes written to buf, or total bufLen needed if buf is NULL
 // (tx->blockHeight and tx->timestamp are not serialized - except timestamp in motacoin)
@@ -132,7 +134,7 @@ int BRTransactionIsSigned(const BRTransaction *tx);
 // adds signatures to any inputs with NULL signatures that can be signed with any keys
 // forkId is 0 for bitcoin, 0x40 for b-cash, 0x4f for b-gold
 // returns true if tx is signed
-int BRTransactionSign(BRTransaction *tx, int forkId, BRKey keys[], size_t keysCount);
+int BRTransactionSign(BRTransaction *tx, BRKey keys[], size_t keysCount);
 
 // true if tx meets IsStandard() rules: https://bitcoin.org/en/developer-guide#standard-transactions
 int BRTransactionIsStandard(const BRTransaction *tx);

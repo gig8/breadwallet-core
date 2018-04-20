@@ -169,6 +169,7 @@ static const BRChainParams BRBCashParams = {
     2000, // blockHeaderNLimit
     BITCOIN_PUBKEY_ADDRESS, // pubkeyAddress
     BITCOIN_SCRIPT_ADDRESS, // scriptAddress
+    "bc",
 };
 
 static const BRChainParams BRBCashTestNetParams = {
@@ -190,6 +191,7 @@ static const BRChainParams BRBCashTestNetParams = {
     2000, // blockHeaderNLimit
     BITCOIN_PUBKEY_ADDRESS_TEST, // pubkeyAddress
     BITCOIN_SCRIPT_ADDRESS_TEST, // scriptAddress
+    "tb",
 };
 
 #endif // BRChainParams_h

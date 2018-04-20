@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <assert.h>
+#include <BRChainParams.h>
+#include <BRTransaction.h>
 #include "BRCoreJni.h"
 #include "com_breadwallet_core_BRCorePaymentProtocol.h"
 
@@ -90,7 +92,8 @@ Java_com_breadwallet_core_BRCorePaymentProtocolRequest_getNetwork
  */
 JNIEXPORT jobjectArray JNICALL
 Java_com_breadwallet_core_BRCorePaymentProtocolRequest_getOutputs
-        (JNIEnv *env, jobject thisObject) {
+        (JNIEnv *env, jobject thisObject,
+         jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32PrefixString) {
     BRPaymentProtocolRequest *request =
             (BRPaymentProtocolRequest *) getJNIReference(env, thisObject);
 
@@ -100,7 +103,10 @@ Java_com_breadwallet_core_BRCorePaymentProtocolRequest_getOutputs
 
     for (int i = 0; i < outputCount; i++) {
         BRTxOutput *output = (BRTxOutput *) calloc (1, sizeof (BRTxOutput));
-        transactionOutputCopy (output, &request->details->outputs[i]);
+        transactionOutputCopy (
+                env,
+                pubkeyAddress, scriptAddress, bech32PrefixString,
+                output, &request->details->outputs[i]);
 
         jobject outputObject = (*env)->NewObject (env, transactionOutputClass, transactionOutputConstructor, (jlong) output);
         (*env)->SetObjectArrayElement (env, outputs, i, outputObject);
@@ -308,11 +314,13 @@ JNIEXPORT jobjectArray JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolRe
  */
 JNIEXPORT jlong JNICALL
 Java_com_breadwallet_core_BRCorePaymentProtocolRequest_createPaymentProtocolRequest
-        (JNIEnv *env, jclass thisClass, jbyteArray dataByteArray) {
+        (JNIEnv *env, jclass thisClass,
+         jobject objParams,
+         jbyteArray dataByteArray) {
 
     size_t dataLen = (*env)->GetArrayLength(env, dataByteArray);
     const uint8_t *data = (uint8_t *) (*env)->GetByteArrayElements(env, dataByteArray, 0);
-    return (jlong) BRPaymentProtocolRequestParse(data, dataLen);
+    return (jlong) BRPaymentProtocolRequestParse(objParams, data, dataLen);
 }
 
 /*
@@ -418,11 +426,17 @@ Java_com_breadwallet_core_BRCorePaymentProtocolPayment_getRefundTo
 
     size_t objectCount = payment->refundToCount;
 
+    const BRChainParams *params = payment->transactions[0]->params;
+
     jobjectArray objects = (*env)->NewObjectArray (env, objectCount, transactionOutputClass, 0);
+    jstring bech32PrefixString = (*env)->NewStringUTF(env, params->bech32Prefix);
 
     for (int i = 0; i < objectCount; i++) {
         BRTxOutput *target = (BRTxOutput *) calloc (1, sizeof (BRTxOutput));
-        transactionOutputCopy (target, &payment->refundTo[i]);
+        transactionOutputCopy (
+                env,
+                params->pubkeyAddress, params->scriptAddress, bech32PrefixString,
+                target, &payment->refundTo[i]);
 
         jobject object = (*env)->NewObject (env, transactionOutputClass, transactionOutputConstructor, (jlong) target);
         (*env)->SetObjectArrayElement (env, objects, i, object);
@@ -453,10 +467,11 @@ Java_com_breadwallet_core_BRCorePaymentProtocolPayment_getMerchantMemo
  */
 JNIEXPORT jlong JNICALL
 Java_com_breadwallet_core_BRCorePaymentProtocolPayment_createPaymentProtocolPayment
-        (JNIEnv *env, jclass thisClass, jint forkId, jbyteArray dataByteArray)  {
+        (JNIEnv *env, jclass thisClass,
+         jobject objParams, jbyteArray dataByteArray)  {
     size_t dataLen = (*env)->GetArrayLength(env, dataByteArray);
     const uint8_t *data = (uint8_t *) (*env)->GetByteArrayElements(env, dataByteArray, 0);
-    return (jlong) BRPaymentProtocolPaymentParse (forkId, data, dataLen);
+    return (jlong) BRPaymentProtocolPaymentParse (objParams, data, dataLen);
 }
 /*
  * Class:     com_breadwallet_core_BRCorePaymentProtocolPayment
@@ -574,13 +589,19 @@ Java_com_breadwallet_core_BRCorePaymentProtocolACK_getRefundTo
     BRPaymentProtocolACK *ack = (BRPaymentProtocolACK *) getJNIReference (env, thisObject);
     BRPaymentProtocolPayment *payment = ack->payment;
 
+    const BRChainParams *params = payment->transactions[0]->params;
+
     size_t objectCount = payment->refundToCount;
 
     jobjectArray objects = (*env)->NewObjectArray (env, objectCount, transactionOutputClass, 0);
+    jstring bech32PrefixString = (*env)->NewStringUTF(env, params->bech32Prefix);
 
     for (int i = 0; i < objectCount; i++) {
         BRTxOutput *target = (BRTxOutput *) calloc (1, sizeof (BRTxOutput));
-        transactionOutputCopy (target, &payment->refundTo[i]);
+        transactionOutputCopy (
+                env,
+                params->pubkeyAddress, params->scriptAddress, bech32PrefixString,
+                target, &payment->refundTo[i]);
 
         jobject object = (*env)->NewObject (env, transactionOutputClass, transactionOutputConstructor, (jlong) target);
         (*env)->SetObjectArrayElement (env, objects, i, object);
@@ -611,10 +632,11 @@ Java_com_breadwallet_core_BRCorePaymentProtocolACK_getMerchantMemo
  * Signature: ([B)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_createPaymentProtocolACK
-        (JNIEnv *env, jclass thisClass, jint forkId, jbyteArray dataByteArray) {
+        (JNIEnv *env, jclass thisClass,
+         jobject objParams, jbyteArray dataByteArray) {
     size_t dataLen = (*env)->GetArrayLength(env, dataByteArray);
     const uint8_t *data = (uint8_t *) (*env)->GetByteArrayElements(env, dataByteArray, 0);
-    return (jlong) BRPaymentProtocolACKParse (forkId, data, dataLen);
+    return (jlong) BRPaymentProtocolACKParse (objParams, data, dataLen);
 }
 
 /*
@@ -623,7 +645,8 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_creat
  * Signature: ()[B
  */
 JNIEXPORT jbyteArray JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_serialize
-        (JNIEnv *env, jobject thisObject, jint forkId) {
+        (JNIEnv *env, jobject thisObject,
+         jint forkId) {
     BRPaymentProtocolACK *ack = (BRPaymentProtocolACK *) getJNIReference (env, thisObject);
 
     size_t dataLen = BRPaymentProtocolACKSerialize (ack, forkId, NULL, 0);

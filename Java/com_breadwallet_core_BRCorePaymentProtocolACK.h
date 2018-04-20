@@ -53,7 +53,7 @@ JNIEXPORT jstring JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_get
  * Signature: ([B)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_createPaymentProtocolACK
-  (JNIEnv *, jclass, jint, jbyteArray);
+  (JNIEnv *, jclass, jobject, jbyteArray);
 
 /*
  * Class:     com_breadwallet_core_BRCorePaymentProtocolACK

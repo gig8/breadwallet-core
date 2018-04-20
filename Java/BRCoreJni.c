@@ -63,28 +63,39 @@ JNI_OnLoad (JavaVM *theJvm, void *reserved) {
 // Support
 //
 extern void
-transactionInputCopy(BRTxInput *target,
+transactionInputCopy(JNIEnv *env,
+                     jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32PrefixString,
+                     BRTxInput *target,
                      const BRTxInput *source) {
+    const char *bech32Prefix = (*env)->GetStringUTFChars (env, bech32PrefixString, 0);
+
     assert (target != NULL);
     assert (source != NULL);
     *target = *source;
 
     target->script = NULL;
-    BRTxInputSetScript(target, source->script, source->scriptLen);
+    BRTxInputSetScript(pubkeyAddress, scriptAddress, bech32Prefix,
+                       target, source->script, source->scriptLen);
 
     target->signature = NULL;
-    BRTxInputSetSignature(target, source->signature, source->sigLen);
+    BRTxInputSetSignature(pubkeyAddress, scriptAddress, bech32Prefix,
+                          target, source->signature, source->sigLen);
 }
 
 extern void
-transactionOutputCopy (BRTxOutput *target,
+transactionOutputCopy (JNIEnv *env,
+                       jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32PrefixString,
+                       BRTxOutput *target,
                        const BRTxOutput *source) {
+    const char *bech32Prefix = (*env)->GetStringUTFChars (env, bech32PrefixString, 0);
+
     assert (target != NULL);
     assert (source != NULL);
     *target = *source;
 
     target->script = NULL;
-    BRTxOutputSetScript(target, source->script, source->scriptLen);
+    BRTxOutputSetScript(pubkeyAddress, scriptAddress, bech32Prefix,
+                        target, source->script, source->scriptLen);
 }
 
 

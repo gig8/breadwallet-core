@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <malloc.h>
 #include <BRInt.h>
+#include <BRChainParams.h>
 #include "BRCoreJni.h"
 #include "com_breadwallet_core_BRCoreTransaction.h"
 
@@ -82,9 +83,14 @@ JNIEXPORT jobjectArray JNICALL Java_com_breadwallet_core_BRCoreTransaction_getIn
 
     jobjectArray inputs = (*env)->NewObjectArray (env, inputCount, transactionInputClass, 0);
 
+    jstring bech32PrefixString = (*env)->NewStringUTF(env, transaction->params->bech32Prefix);
+
     for (int i = 0; i < inputCount; i++) {
         BRTxInput *input = (BRTxInput *) calloc (1, sizeof (BRTxInput));
-        transactionInputCopy(input, &transaction->inputs[i]);
+        transactionInputCopy(
+                env,
+                transaction->params->pubkeyAddress, transaction->params->scriptAddress, bech32PrefixString,
+                input, &transaction->inputs[i]);
 
         jobject inputObject = (*env)->NewObject (env, transactionInputClass, transactionInputConstructor, (jlong) input);
         (*env)->SetObjectArrayElement (env, inputs, i, inputObject);
@@ -108,9 +114,14 @@ JNIEXPORT jobjectArray JNICALL Java_com_breadwallet_core_BRCoreTransaction_getOu
 
     jobjectArray outputs = (*env)->NewObjectArray (env, outputCount, transactionOutputClass, 0);
 
+    jstring bech32PrefixString = (*env)->NewStringUTF(env, transaction->params->bech32Prefix);
+
     for (int i = 0; i < outputCount; i++) {
         BRTxOutput *output = (BRTxOutput *) calloc (1, sizeof (BRTxOutput));
-        transactionOutputCopy(output, &transaction->outputs[i]);
+        transactionOutputCopy(
+                env,
+                transaction->params->pubkeyAddress, transaction->params->scriptAddress, bech32PrefixString,
+                output, &transaction->outputs[i]);
 
         jobject outputObject = (*env)->NewObject (env, transactionOutputClass, transactionOutputConstructor, (jlong) output);
         (*env)->SetObjectArrayElement (env, outputs, i, outputObject);
@@ -289,7 +300,7 @@ Java_com_breadwallet_core_BRCoreTransaction_isSigned
  */
 JNIEXPORT void JNICALL
 Java_com_breadwallet_core_BRCoreTransaction_sign
-        (JNIEnv *env, jobject thisObject, jobjectArray keyObjectArray, jint forkId) {
+        (JNIEnv *env, jobject thisObject, jobjectArray keyObjectArray) {
     BRTransaction *transaction = (BRTransaction *) getJNIReference (env, thisObject);
 
     size_t keyCount = (*env)->GetArrayLength (env, keyObjectArray);
@@ -301,7 +312,7 @@ Java_com_breadwallet_core_BRCoreTransaction_sign
 
         (*env)->DeleteLocalRef (env, keyObject);
     }
-    BRTransactionSign(transaction, forkId, keys, keyCount);
+    BRTransactionSign(transaction, keys, keyCount);
 
     if (NULL == keys) free (keys);
     return;
@@ -388,7 +399,7 @@ JNIEXPORT void JNICALL Java_com_breadwallet_core_BRCoreTransaction_initializeNat
 JNIEXPORT jlong JNICALL
 Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransaction
         (JNIEnv *env, jclass thisClass,
-         jint forkId,
+         jobject objParams,
          jbyteArray transactionByteArray,
          jlong blockHeight,
          jlong timestamp) {
@@ -397,7 +408,7 @@ Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransaction
     size_t transactionSize = (size_t) (*env)->GetArrayLength (env, transactionByteArray);
     const uint8_t *transactionData = (const uint8_t *) (*env)->GetByteArrayElements (env, transactionByteArray, 0);
 
-    BRTransaction *transaction = BRTransactionParse(forkId, transactionData, transactionSize);
+    BRTransaction *transaction = BRTransactionParse(objParams, transactionData, transactionSize);
     assert (NULL != transaction);
 
     transaction->blockHeight = (uint32_t) blockHeight;
@@ -413,14 +424,14 @@ Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransaction
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransactionSerialized
         (JNIEnv *env, jclass thisClass,
-         jint forkId,
+         jobject objParams,
          jbyteArray transactionByteArray) {
 
     // static native long createJniCoreTransaction (byte[] buffer, long blockHeight, long timeStamp);
     size_t transactionSize = (size_t) (*env)->GetArrayLength (env, transactionByteArray);
     const uint8_t *transactionData = (const uint8_t *) (*env)->GetByteArrayElements (env, transactionByteArray, 0);
 
-    BRTransaction *transaction = BRTransactionParse(forkId, transactionData, transactionSize);
+    BRTransaction *transaction = BRTransactionParse(objParams, transactionData, transactionSize);
     assert (NULL != transaction);
 
     return (jlong) transaction;
@@ -432,6 +443,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCor
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransactionEmpty
-        (JNIEnv *env, jclass thisClass) {
-    return (jlong) BRTransactionNew();
+        (JNIEnv *env, jclass thisClass,
+         jobject objParams) {
+    return (jlong) BRTransactionNew(objParams);
 }

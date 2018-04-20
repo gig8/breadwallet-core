@@ -124,6 +124,7 @@ static const BRChainParams BRMotaParams = {
     1500, // blockHeaderNLimit
     MOTA_PUBKEY_ADDRESS, // pubkeyAddress
     MOTA_SCRIPT_ADDRESS, // scriptAddress
+    "mt",
 };
 
 static const BRChainParams BRMotaTestNetParams = {
@@ -145,6 +146,7 @@ static const BRChainParams BRMotaTestNetParams = {
     1500, // blockHeaderNLimit
     MOTA_PUBKEY_ADDRESS_TEST, // pubkeyAddress
     MOTA_SCRIPT_ADDRESS_TEST, // scriptAddress
+    "tm",
 };
 
 #endif // BRMotaParams_h

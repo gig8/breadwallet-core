@@ -21,7 +21,8 @@ JNIEXPORT jstring JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolRequest
  * Signature: ()[Lcom/breadwallet/core/BRCoreTransactionOutput;
  */
 JNIEXPORT jobjectArray JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolRequest_getOutputs
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject,
+   jbyte, jbyte, jstring);
 
 /*
  * Class:     com_breadwallet_core_BRCorePaymentProtocolRequest
@@ -117,7 +118,9 @@ JNIEXPORT jobjectArray JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolRe
  * Signature: ([B)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolRequest_createPaymentProtocolRequest
-  (JNIEnv *, jclass, jbyteArray);
+  (JNIEnv *, jclass,
+   jobject,
+   jbyteArray);
 
 /*
  * Class:     com_breadwallet_core_BRCorePaymentProtocolRequest

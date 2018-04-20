@@ -13,7 +13,9 @@ extern "C" {
  * Signature: (J[B)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransactionOutput_createTransactionOutput
-  (JNIEnv *, jclass, jlong, jbyteArray);
+  (JNIEnv *, jclass,
+   jbyte, jbyte, jstring,
+   jlong, jbyteArray);
 
 /*
  * Class:     com_breadwallet_core_BRCoreTransactionOutput

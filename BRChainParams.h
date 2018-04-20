@@ -60,6 +60,7 @@ typedef struct {
     size_t blockHeaderNLimit;
     uint8_t pubkeyAddress;
     uint8_t scriptAddress;
+    const char* bech32Prefix;
 } BRChainParams;
 
 static const char *BRMainNetDNSSeeds[] = {
@@ -161,6 +162,7 @@ static const BRChainParams BRMainNetParams = {
     2000, // blockHeaderNLimit
     BITCOIN_PUBKEY_ADDRESS, // pubkeyAddress
     BITCOIN_SCRIPT_ADDRESS, // scriptAddress
+    "bc",
 };
 
 static const BRChainParams BRTestNetParams = {
@@ -182,6 +184,7 @@ static const BRChainParams BRTestNetParams = {
     2000, // blockHeaderNLimit
     BITCOIN_PUBKEY_ADDRESS_TEST, // pubkeyAddress
     BITCOIN_SCRIPT_ADDRESS_TEST, // scriptAddress
+    "tb",
 };
 
 #endif // BRChainParams_h

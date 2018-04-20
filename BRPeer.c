@@ -411,7 +411,7 @@ static int _BRPeerAcceptInvMessage(BRPeer *peer, const uint8_t *msg, size_t msgL
 static int _BRPeerAcceptTxMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen)
 {
     BRPeerContext *ctx = (BRPeerContext *)peer;
-    BRTransaction *tx = BRTransactionParse(ctx->params->forkId, msg, msgLen);
+    BRTransaction *tx = BRTransactionParse(ctx->params, msg, msgLen);
     UInt256 txHash;
     int r = 1;
 

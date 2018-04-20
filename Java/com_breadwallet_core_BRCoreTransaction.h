@@ -143,7 +143,7 @@ JNIEXPORT jboolean JNICALL Java_com_breadwallet_core_BRCoreTransaction_isSigned
  * Signature: ([Lcom/breadwallet/core/BRCoreKey;I)V
  */
 JNIEXPORT void JNICALL Java_com_breadwallet_core_BRCoreTransaction_sign
-  (JNIEnv *, jobject, jobjectArray, jint);
+  (JNIEnv *, jobject, jobjectArray);
 
 /*
  * Class:     com_breadwallet_core_BRCoreTransaction
@@ -191,7 +191,7 @@ JNIEXPORT void JNICALL Java_com_breadwallet_core_BRCoreTransaction_initializeNat
  * Signature: ([BJJ)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransaction
-  (JNIEnv *, jclass, jint, jbyteArray, jlong, jlong);
+  (JNIEnv *, jclass, jobject, jbyteArray, jlong, jlong);
 
 /*
  * Class:     com_breadwallet_core_BRCoreTransaction
@@ -199,7 +199,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCor
  * Signature: ([B)J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransactionSerialized
-  (JNIEnv *, jclass, jint, jbyteArray);
+  (JNIEnv *, jclass, jobject, jbyteArray);
 
 /*
  * Class:     com_breadwallet_core_BRCoreTransaction
@@ -207,7 +207,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCor
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransactionEmpty
-  (JNIEnv *, jclass);
+  (JNIEnv *, jclass, jobject);
 
 #ifdef __cplusplus
 }

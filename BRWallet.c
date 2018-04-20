@@ -26,6 +26,7 @@
 #include "BRSet.h"
 #include "BRAddress.h"
 #include "BRArray.h"
+#include "BRChainParams.h"
 #include <stdlib.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -558,9 +559,12 @@ BRTransaction *BRWalletCreateTransaction(BRWallet *wallet, uint64_t amount, cons
     
     assert(wallet != NULL);
     assert(amount > 0);
-    assert(addr != NULL && BRAddressIsValid(addr));
+    assert(addr != NULL && BRAddressIsValid(
+            wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+            addr));
     o.amount = amount;
-    BRTxOutputSetAddress(&o, addr);
+    BRTxOutputSetAddress(wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+                         &o, addr);
     return BRWalletCreateTxForOutputs(wallet, &o, 1);
 }
 
@@ -568,7 +572,7 @@ BRTransaction *BRWalletCreateTransaction(BRWallet *wallet, uint64_t amount, cons
 // result must be freed by calling BRTransactionFree()
 BRTransaction *BRWalletCreateTxForOutputs(BRWallet *wallet, const BRTxOutput outputs[], size_t outCount)
 {
-    BRTransaction *tx, *transaction = BRTransactionNew();
+    BRTransaction *tx, *transaction = BRTransactionNew(wallet->params);
     uint64_t feeAmount, amount = 0, balance = 0, minAmount;
     size_t i, j, cpfpSize = 0;
     BRUTXO *o;
@@ -648,8 +652,12 @@ BRTransaction *BRWalletCreateTxForOutputs(BRWallet *wallet, const BRTxOutput out
     }
     else if (transaction && balance - (amount + feeAmount) > minAmount) { // add change output
         BRWalletUnusedAddrs(wallet, &addr, 1, 1);
-        uint8_t script[BRAddressScriptPubKey(NULL, 0, addr.s)];
-        size_t scriptLen = BRAddressScriptPubKey(script, sizeof(script), addr.s);
+        uint8_t script[BRAddressScriptPubKey(
+                wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+                NULL, 0, addr.s)];
+        size_t scriptLen = BRAddressScriptPubKey(
+                wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+                script, sizeof(script), addr.s);
     
         BRTransactionAddOutput(transaction, balance - (amount + feeAmount), script, scriptLen);
         BRTransactionShuffleOutputs(transaction);
@@ -691,7 +699,7 @@ int BRWalletSignTransaction(BRWallet *wallet, BRTransaction *tx, const void *see
         BRBIP32PrivKeyList(&keys[internalCount], externalCount, seed, seedLen, SEQUENCE_EXTERNAL_CHAIN, externalIdx);
         // TODO: XXX wipe seed callback
         seed = NULL;
-        if (tx) r = BRTransactionSign(tx, wallet->params->forkId, keys, internalCount + externalCount);
+        if (tx) r = BRTransactionSign(tx, keys, internalCount + externalCount);
         for (i = 0; i < internalCount + externalCount; i++) BRKeyClean(&keys[i]);
     }
     else r = -1; // user canceled authentication
@@ -1108,7 +1116,9 @@ uint64_t BRWalletFeeForTxAmount(BRWallet *wallet, uint64_t amount)
     assert(amount > 0);
     maxAmount = BRWalletMaxOutputAmount(wallet);
     o.amount = (amount < maxAmount) ? amount : maxAmount;
-    BRTxOutputSetScript(&o, dummyScript, sizeof(dummyScript)); // unspendable dummy scriptPubKey
+    BRTxOutputSetScript(
+            wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+            &o, dummyScript, sizeof(dummyScript)); // unspendable dummy scriptPubKey
     tx = BRWalletCreateTxForOutputs(wallet, &o, 1);
 
     if (tx) {

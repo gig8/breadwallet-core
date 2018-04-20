@@ -51,11 +51,15 @@ getJNIReference (
 // Support
 //
 extern void
-transactionInputCopy(BRTxInput *target,
+transactionInputCopy(JNIEnv *env,
+                     jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32Prefix,
+                     BRTxInput *target,
                      const BRTxInput *source);
 
 extern void
-transactionOutputCopy (BRTxOutput *target,
+transactionOutputCopy (JNIEnv *env,
+                       jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32Prefix,
+                       BRTxOutput *target,
                        const BRTxOutput *source);
 
 #endif //COREJNI_BRCOREJVM_H
