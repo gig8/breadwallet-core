@@ -14,7 +14,7 @@ extern "C" {
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransactionOutput_createTransactionOutput
   (JNIEnv *, jclass,
-   jbyte, jbyte, jstring,
+   jobject,
    jlong, jbyteArray);
 
 /*

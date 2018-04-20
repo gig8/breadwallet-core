@@ -22,7 +22,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreAddress_createCoreAddres
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreAddress_createCoreAddressFromScriptPubKey
   (JNIEnv *, jclass,
-   jbyte, jbyte, jstring,
+   jobject,
    jbyteArray);
 
 /*
@@ -32,7 +32,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreAddress_createCoreAddres
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreAddress_createCoreAddressFromScriptSignature
   (JNIEnv *, jclass,
-   jbyte, jbyte,
+   jobject,
    jbyteArray);
 
 /*
@@ -49,8 +49,7 @@ JNIEXPORT jstring JNICALL Java_com_breadwallet_core_BRCoreAddress_stringify
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_com_breadwallet_core_BRCoreAddress_isValid
-  (JNIEnv *, jobject,
-   jbyte, jbyte, jstring);
+  (JNIEnv *, jobject, jobject);
 
 /*
  * Class:     com_breadwallet_core_BRCoreAddress
@@ -58,8 +57,7 @@ JNIEXPORT jboolean JNICALL Java_com_breadwallet_core_BRCoreAddress_isValid
  * Signature: ()[B
  */
 JNIEXPORT jbyteArray JNICALL Java_com_breadwallet_core_BRCoreAddress_getPubKeyScript
-  (JNIEnv *, jobject,
-   jbyte, jbyte, jstring);
+  (JNIEnv *, jobject, jobject);
 
 /*
  * Class:     com_breadwallet_core_BRCoreAddress

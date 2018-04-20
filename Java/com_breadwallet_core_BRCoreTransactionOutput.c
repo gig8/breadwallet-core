@@ -35,11 +35,10 @@
 JNIEXPORT jlong JNICALL
 Java_com_breadwallet_core_BRCoreTransactionOutput_createTransactionOutput
         (JNIEnv *env, jclass thisClass,
-         jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32PrefixString,
+         jobject objParams,
          jlong amount,
          jbyteArray scriptByteArray) {
     BRTxOutput *output = (BRTxOutput *) calloc(1, sizeof(BRTxOutput));
-    const char *bech32Prefix = (*env)->GetStringUTFChars (env, bech32PrefixString, 0);
 
     // script
     output->script = NULL;
@@ -49,7 +48,7 @@ Java_com_breadwallet_core_BRCoreTransactionOutput_createTransactionOutput
              ? NULL
              : (*env)->GetByteArrayElements(env, scriptByteArray, 0));
     BRTxOutputSetScript(
-            pubkeyAddress, scriptAddress, bech32Prefix,
+            objParams,
             output, script, scriptLen);
 
     output->amount = (uint64_t) amount;

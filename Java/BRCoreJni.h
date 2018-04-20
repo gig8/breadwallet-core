@@ -52,13 +52,13 @@ getJNIReference (
 //
 extern void
 transactionInputCopy(JNIEnv *env,
-                     jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32Prefix,
+                     jobject objParams,
                      BRTxInput *target,
                      const BRTxInput *source);
 
 extern void
 transactionOutputCopy (JNIEnv *env,
-                       jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32Prefix,
+                       jobject objParams,
                        BRTxOutput *target,
                        const BRTxOutput *source);
 

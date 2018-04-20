@@ -40,18 +40,18 @@ public class BRCoreTransaction extends BRCoreJniReference {
      */
     protected boolean isRegistered = false;
 
-    public BRCoreTransaction (byte[] buffer) {
-        this (createJniCoreTransactionSerialized (buffer));
+    public BRCoreTransaction (BRCoreChainParams params, byte[] buffer) {
+        this (createJniCoreTransactionSerialized (params, buffer));
         // ...
     }
 
-    public BRCoreTransaction (byte[] buffer, long blockHeight, long timeStamp ) {
-        this (createJniCoreTransaction (buffer, blockHeight, timeStamp));
+    public BRCoreTransaction (BRCoreChainParams params, byte[] buffer, long blockHeight, long timeStamp ) {
+        this (createJniCoreTransaction (params, buffer, blockHeight, timeStamp));
         // ...
     }
 
-    public BRCoreTransaction () {
-        this (createJniCoreTransactionEmpty());
+    public BRCoreTransaction (BRCoreChainParams params) {
+        this (createJniCoreTransactionEmpty(params));
     }
 
     protected BRCoreTransaction (long jniReferenceAddress) {
@@ -167,7 +167,7 @@ public class BRCoreTransaction extends BRCoreJniReference {
 
      * @return the size in bytes.
      */
-    public native long getSize (int forkId);
+    public native long getSize ();
 
     /**
      * The transaction's standard fee which is the minimum transaction fee needed for the
@@ -175,7 +175,7 @@ public class BRCoreTransaction extends BRCoreJniReference {
      * *
      * @return the fee (in Satoshis)?
      */
-    public native long getStandardFee (int forkId);
+    public native long getStandardFee ();
 
     /**
      * Returns true if all the transaction's signatures exists.  This method does not verify
@@ -186,10 +186,10 @@ public class BRCoreTransaction extends BRCoreJniReference {
     public native boolean isSigned ();
 
 
-    public native void sign (BRCoreKey[] keys, int forkId);
+    public native void sign (BRCoreKey[] keys);
 
-    public void sign (BRCoreKey key, int forkId) {
-        sign (new BRCoreKey[] { key }, forkId);
+    public void sign (BRCoreKey key) {
+        sign (new BRCoreKey[] { key });
     }
 
     /**
@@ -225,9 +225,9 @@ public class BRCoreTransaction extends BRCoreJniReference {
      * @param timeStamp
      * @return
      */
-    private static native long createJniCoreTransaction (byte[] buffer, long blockHeight, long timeStamp);
+    private static native long createJniCoreTransaction (BRCoreChainParams params, byte[] buffer, long blockHeight, long timeStamp);
 
-    private static native long createJniCoreTransactionSerialized (byte[] buffer);
+    private static native long createJniCoreTransactionSerialized (BRCoreChainParams params, byte[] buffer);
 
-    private static native long createJniCoreTransactionEmpty ();
+    private static native long createJniCoreTransactionEmpty (BRCoreChainParams params);
 }

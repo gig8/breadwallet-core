@@ -165,19 +165,21 @@ public class BRCoreWalletManager implements
         return transaction.getHash();
     }
 
-    protected int getForkId () {
+    public BRCoreChainParams getParams () { return chainParams; }
+
+    public int getForkId () {
         return chainParams.getJniForkId();
     }
 
-    protected int getAlgoId () {
+    public int getAlgoId () {
         return chainParams.getJniAlgoId();
     }
 
-    protected long getProtocolVersion () {
+    public long getProtocolVersion () {
         return chainParams.getJniProtocolVersion();
     }
 
-    protected long getMinProtoVersion () {
+    public long getMinProtoVersion () {
         return chainParams.getJniMinProtoVersion();
     }
 

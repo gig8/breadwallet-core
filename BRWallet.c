@@ -191,7 +191,7 @@ static void _BRWalletUpdateBalance(BRWallet *wallet)
 
         // check if tx is pending
         if (tx->blockHeight == TX_UNCONFIRMED) {
-            isPending = (BRTransactionSize(tx, wallet->params->forkId) > TX_MAX_SIZE) ? 1 : 0; // check tx size is under TX_MAX_SIZE
+            isPending = (BRTransactionSize(tx) > TX_MAX_SIZE) ? 1 : 0; // check tx size is under TX_MAX_SIZE
             
             for (j = 0; ! isPending && j < tx->outCount; j++) {
                 if (tx->outputs[j].amount < TX_MIN_OUTPUT_AMOUNT) isPending = 1; // check that no outputs are dust
@@ -560,10 +560,10 @@ BRTransaction *BRWalletCreateTransaction(BRWallet *wallet, uint64_t amount, cons
     assert(wallet != NULL);
     assert(amount > 0);
     assert(addr != NULL && BRAddressIsValid(
-            wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+            wallet->params,
             addr));
     o.amount = amount;
-    BRTxOutputSetAddress(wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+    BRTxOutputSetAddress(wallet->params,
                          &o, addr);
     return BRWalletCreateTxForOutputs(wallet, &o, 1);
 }
@@ -589,7 +589,7 @@ BRTransaction *BRWalletCreateTxForOutputs(BRWallet *wallet, const BRTxOutput out
     
     minAmount = BRWalletMinOutputAmount(wallet);
     pthread_mutex_lock(&wallet->lock);
-    feeAmount = _txFee(wallet->feePerKb, BRTransactionSize(transaction, wallet->params->forkId) + TX_OUTPUT_SIZE);
+    feeAmount = _txFee(wallet->feePerKb, BRTransactionSize(transaction) + TX_OUTPUT_SIZE);
     
     // TODO: use up all UTXOs for all used addresses to avoid leaving funds in addresses whose public key is revealed
     // TODO: avoid combining addresses in a single transaction when possible to reduce information leakage
@@ -602,7 +602,7 @@ BRTransaction *BRWalletCreateTxForOutputs(BRWallet *wallet, const BRTxOutput out
         BRTransactionAddInput(transaction, tx->txHash, o->n, tx->outputs[o->n].amount,
                               tx->outputs[o->n].script, tx->outputs[o->n].scriptLen, NULL, 0, TXIN_SEQUENCE);
         
-        if (BRTransactionSize(transaction, wallet->params->forkId) + TX_OUTPUT_SIZE > TX_MAX_SIZE) { // transaction size-in-bytes too large
+        if (BRTransactionSize(transaction) + TX_OUTPUT_SIZE > TX_MAX_SIZE) { // transaction size-in-bytes too large
             BRTransactionFree(transaction);
             transaction = NULL;
         
@@ -636,7 +636,7 @@ BRTransaction *BRWalletCreateTxForOutputs(BRWallet *wallet, const BRTxOutput out
 //            ! _BRWalletTxIsSend(wallet, tx)) cpfpSize += BRTransactionSize(tx);
 
         // fee amount after adding a change output
-        feeAmount = _txFee(wallet->feePerKb, BRTransactionSize(transaction, wallet->params->forkId) + TX_OUTPUT_SIZE + cpfpSize);
+        feeAmount = _txFee(wallet->feePerKb, BRTransactionSize(transaction) + TX_OUTPUT_SIZE + cpfpSize);
 
         // increase fee to round off remaining wallet balance to nearest 100 satoshi
         if (wallet->balance > amount + feeAmount) feeAmount += (wallet->balance - (amount + feeAmount)) % 100;
@@ -653,10 +653,10 @@ BRTransaction *BRWalletCreateTxForOutputs(BRWallet *wallet, const BRTxOutput out
     else if (transaction && balance - (amount + feeAmount) > minAmount) { // add change output
         BRWalletUnusedAddrs(wallet, &addr, 1, 1);
         uint8_t script[BRAddressScriptPubKey(
-                wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+                wallet->params,
                 NULL, 0, addr.s)];
         size_t scriptLen = BRAddressScriptPubKey(
-                wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+                wallet->params,
                 script, sizeof(script), addr.s);
     
         BRTransactionAddOutput(transaction, balance - (amount + feeAmount), script, scriptLen);
@@ -892,7 +892,7 @@ int BRWalletTransactionIsPending(BRWallet *wallet, const BRTransaction *tx)
     pthread_mutex_unlock(&wallet->lock);
 
     if (tx && tx->blockHeight == TX_UNCONFIRMED) { // only unconfirmed transactions can be postdated
-        if (BRTransactionSize(tx, wallet->params->forkId) > TX_MAX_SIZE) r = 1; // check transaction size is under TX_MAX_SIZE
+        if (BRTransactionSize(tx) > TX_MAX_SIZE) r = 1; // check transaction size is under TX_MAX_SIZE
         
         for (size_t i = 0; ! r && i < tx->inCount; i++) {
             if (tx->inputs[i].sequence < UINT32_MAX - 1) r = 1; // check for replace-by-fee
@@ -1117,7 +1117,7 @@ uint64_t BRWalletFeeForTxAmount(BRWallet *wallet, uint64_t amount)
     maxAmount = BRWalletMaxOutputAmount(wallet);
     o.amount = (amount < maxAmount) ? amount : maxAmount;
     BRTxOutputSetScript(
-            wallet->params->pubkeyAddress, wallet->params->scriptAddress, wallet->params->bech32Prefix,
+            wallet->params,
             &o, dummyScript, sizeof(dummyScript)); // unspendable dummy scriptPubKey
     tx = BRWalletCreateTxForOutputs(wallet, &o, 1);
 

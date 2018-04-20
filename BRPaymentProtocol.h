@@ -69,6 +69,7 @@ size_t BRPaymentProtocolDetailsSerialize(const BRPaymentProtocolDetails *details
 void BRPaymentProtocolDetailsFree(BRPaymentProtocolDetails *details);
 
 typedef struct {
+    const BRChainParams *params;
     uint32_t version; // default is 1
     char *pkiType; // none / x509+sha256 / x509+sha1, default is "none"
     uint8_t *pkiData; // depends on pkiType, optional
@@ -79,7 +80,8 @@ typedef struct {
 } BRPaymentProtocolRequest;
 
 // returns a newly allocated request struct that must be freed by calling BRPaymentProtocolRequestFree()
-BRPaymentProtocolRequest *BRPaymentProtocolRequestNew(uint32_t version, const char *pkiType, const uint8_t *pkiData,
+BRPaymentProtocolRequest *BRPaymentProtocolRequestNew(const BRChainParams *params,
+                                                      uint32_t version, const char *pkiType, const uint8_t *pkiData,
                                                       size_t pkiDataLen, BRPaymentProtocolDetails *details,
                                                       const uint8_t *signature, size_t sigLen);
 
@@ -124,7 +126,7 @@ BRPaymentProtocolPayment *BRPaymentProtocolPaymentNew(const uint8_t *merchantDat
 BRPaymentProtocolPayment *BRPaymentProtocolPaymentParse(const BRChainParams *params, const uint8_t *buf, size_t bufLen);
 
 // writes serialized payment struct to buf and returns number of bytes written, or total bufLen needed if buf is NULL
-size_t BRPaymentProtocolPaymentSerialize(const BRPaymentProtocolPayment *payment, int forkId, uint8_t *buf, size_t bufLen);
+size_t BRPaymentProtocolPaymentSerialize(const BRPaymentProtocolPayment *payment, uint8_t *buf, size_t bufLen);
 
 // frees memory allocated for payment struct (does not call BRTransactionFree() on transactions)
 void BRPaymentProtocolPaymentFree(BRPaymentProtocolPayment *payment);
@@ -142,7 +144,7 @@ BRPaymentProtocolACK *BRPaymentProtocolACKNew(BRPaymentProtocolPayment *payment,
 BRPaymentProtocolACK *BRPaymentProtocolACKParse(const BRChainParams *params, const uint8_t *buf, size_t bufLen);
 
 // writes serialized ACK struct to buf and returns number of bytes written, or total bufLen needed if buf is NULL
-size_t BRPaymentProtocolACKSerialize(const BRPaymentProtocolACK *ack, int forkId, uint8_t *buf, size_t bufLen);
+size_t BRPaymentProtocolACKSerialize(const BRPaymentProtocolACK *ack, uint8_t *buf, size_t bufLen);
 
 // frees memory allocated for ACK struct
 void BRPaymentProtocolACKFree(BRPaymentProtocolACK *ack);

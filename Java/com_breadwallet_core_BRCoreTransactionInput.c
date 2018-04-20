@@ -35,7 +35,7 @@
  */
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransactionInput_createTransactionInput
         (JNIEnv *env, jclass thisClass,
-         jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32Prefix,
+         jobject objParams,
          jbyteArray hashByteArray, jlong index, jlong amount,
          jbyteArray scriptByteArray,
          jbyteArray signatureByteArray,
@@ -57,7 +57,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransactionInput_createT
             (0 == scriptLen
              ? NULL
              : (*env)->GetByteArrayElements(env, scriptByteArray, 0));
-    BRTxInputSetScript(pubkeyAddress, scriptAddress, bech32Prefix,
+    BRTxInputSetScript(objParams,
                        input, script, scriptLen);
 
     // signature
@@ -67,7 +67,7 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransactionInput_createT
             (0 == signatureLen
              ? NULL
              : (*env)->GetByteArrayElements(env, signatureByteArray, 0));
-    BRTxInputSetSignature(pubkeyAddress, scriptAddress, bech32Prefix,
+    BRTxInputSetSignature(objParams,
                           input, signature, signatureLen);
 
     input->sequence = (uint32_t) (sequence == -1 ? TXIN_SEQUENCE : sequence);

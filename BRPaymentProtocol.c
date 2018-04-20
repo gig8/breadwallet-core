@@ -280,7 +280,7 @@ static BRTxOutput _BRPaymentProtocolOutput(const BRChainParams *params, uint64_t
     array_new(ctx.defaults, output_script + 1);
     array_set_count(ctx.defaults, output_script + 1);
     out.amount = amount;
-    BRTxOutputSetScript(params->pubkeyAddress, params->scriptAddress, params->bech32Prefix,
+    BRTxOutputSetScript(params,
                         &out, script, scriptLen);
     if (! out.script) array_new(out.script, sizeof(ctx));
     array_add_array(out.script, (uint8_t *)&ctx, sizeof(ctx)); // store context at end of script data
@@ -306,7 +306,7 @@ static BRTxOutput _BRPaymentProtocolOutputParse(const BRChainParams *params, con
         switch (key >> 3) {
             case output_amount: out.amount = i, ctx.defaults[output_amount] = 0; break;
             case output_script: BRTxOutputSetScript(
-                        params->pubkeyAddress, params->scriptAddress, params->bech32Prefix,
+                        params,
                         &out, data, dataLen); break;
             default: _ProtoBufUnknown(&ctx.unknown, key, i, data, dataLen); break;
         }
@@ -349,7 +349,7 @@ static void _BRPaymentProtocolOutputFree(const BRChainParams *params, BRTxOutput
         memcpy(&ctx, &out.script[out.scriptLen], sizeof(ctx));
         if (ctx.defaults) array_free(ctx.defaults);
         if (ctx.unknown) array_free(ctx.unknown);
-        BRTxOutputSetScript(params->pubkeyAddress, params->scriptAddress, params->bech32Prefix,
+        BRTxOutputSetScript(params,
                             &out, NULL, 0);
     }
 }
@@ -493,7 +493,8 @@ void BRPaymentProtocolDetailsFree(BRPaymentProtocolDetails *details)
 }
 
 // returns a newly allocated request struct that must be freed by calling BRPaymentProtocolRequestFree()
-BRPaymentProtocolRequest *BRPaymentProtocolRequestNew(uint32_t version, const char *pkiType, const uint8_t *pkiData,
+BRPaymentProtocolRequest *BRPaymentProtocolRequestNew(const BRChainParams *params,
+                                                      uint32_t version, const char *pkiType, const uint8_t *pkiData,
                                                       size_t pkiDataLen, BRPaymentProtocolDetails *details,
                                                       const uint8_t *signature, size_t sigLen)
 {
@@ -502,6 +503,8 @@ BRPaymentProtocolRequest *BRPaymentProtocolRequestNew(uint32_t version, const ch
 
     assert(req != NULL);
     assert(details != NULL);
+
+    req->params = params;
     
     array_new(ctx->defaults, request_signature + 1);
     array_set_count(ctx->defaults, request_signature + 1);
@@ -540,6 +543,8 @@ BRPaymentProtocolRequest *BRPaymentProtocolRequestParse(const BRChainParams *par
     
     assert(req != NULL);
     assert(buf != NULL || bufLen == 0);
+
+    req->params = params;
 
     array_new(ctx->defaults, request_signature + 1);
     array_set_count(ctx->defaults, request_signature + 1);
@@ -712,10 +717,10 @@ BRPaymentProtocolPayment *BRPaymentProtocolPaymentNew(const uint8_t *merchantDat
         
     for (size_t i = 0; i < refundToCount; i++) {
         uint8_t script[BRAddressScriptPubKey(
-                params->pubkeyAddress, params->scriptAddress, params->bech32Prefix,
+                params,
                 NULL, 0, refundToAddresses[i].s)];
         size_t scriptLen = BRAddressScriptPubKey(
-                params->pubkeyAddress, params->scriptAddress, params->bech32Prefix,
+                params,
                 script, sizeof(script), refundToAddresses[i].s);
             
         array_add(payment->refundTo, _BRPaymentProtocolOutput(params, refundToAmounts[i], script, scriptLen));
@@ -767,7 +772,7 @@ BRPaymentProtocolPayment *BRPaymentProtocolPaymentParse(const BRChainParams *par
 }
 
 // writes serialized payment struct to buf, returns number of bytes written, or total bufLen needed if buf is NULL
-size_t BRPaymentProtocolPaymentSerialize(const BRPaymentProtocolPayment *payment, int forkId, uint8_t *buf, size_t bufLen)
+size_t BRPaymentProtocolPaymentSerialize(const BRPaymentProtocolPayment *payment, uint8_t *buf, size_t bufLen)
 {
     const ProtoBufContext *ctx = (const ProtoBufContext *)&payment[1];
     size_t off = 0, sLen = 0x100, l;
@@ -781,10 +786,10 @@ size_t BRPaymentProtocolPaymentSerialize(const BRPaymentProtocolPayment *payment
     }
 
     for (size_t i = 0; i < payment->txCount; i++) {
-        l = BRTransactionSerialize(payment->transactions[i], forkId, NULL, 0);
+        l = BRTransactionSerialize(payment->transactions[i], NULL, 0);
         if (l > sLen) sBuf = realloc(sBuf, (sLen = l));
         assert(sBuf != NULL);
-        l = BRTransactionSerialize(payment->transactions[i], forkId, sBuf, sLen);
+        l = BRTransactionSerialize(payment->transactions[i], sBuf, sLen);
         _ProtoBufSetBytes(buf, bufLen, sBuf, l, payment_transactions, &off);
     }
 
@@ -881,7 +886,7 @@ BRPaymentProtocolACK *BRPaymentProtocolACKParse(const BRChainParams *params, con
 }
 
 // writes serialized ACK struct to buf and returns number of bytes written, or total bufLen needed if buf is NULL
-size_t BRPaymentProtocolACKSerialize(const BRPaymentProtocolACK *ack, int forkId, uint8_t *buf, size_t bufLen)
+size_t BRPaymentProtocolACKSerialize(const BRPaymentProtocolACK *ack, uint8_t *buf, size_t bufLen)
 {
     const ProtoBufContext *ctx = (const ProtoBufContext *)&ack[1];
     size_t off = 0;
@@ -890,11 +895,11 @@ size_t BRPaymentProtocolACKSerialize(const BRPaymentProtocolACK *ack, int forkId
     assert(ack->payment != NULL);
     
     if (ack->payment) {
-        size_t paymentLen = BRPaymentProtocolPaymentSerialize(ack->payment, forkId, NULL, 0);
+        size_t paymentLen = BRPaymentProtocolPaymentSerialize(ack->payment, NULL, 0);
         uint8_t *paymentBuf = malloc(paymentLen);
         
         assert(paymentBuf != NULL);
-        paymentLen = BRPaymentProtocolPaymentSerialize(ack->payment, forkId, paymentBuf, paymentLen);
+        paymentLen = BRPaymentProtocolPaymentSerialize(ack->payment, paymentBuf, paymentLen);
         _ProtoBufSetBytes(buf, bufLen, paymentBuf, paymentLen, ack_payment, &off);
         free(paymentBuf);
     }

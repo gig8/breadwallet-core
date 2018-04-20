@@ -21,8 +21,7 @@ JNIEXPORT jstring JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolRequest
  * Signature: ()[Lcom/breadwallet/core/BRCoreTransactionOutput;
  */
 JNIEXPORT jobjectArray JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolRequest_getOutputs
-  (JNIEnv *, jobject,
-   jbyte, jbyte, jstring);
+  (JNIEnv *, jobject);
 
 /*
  * Class:     com_breadwallet_core_BRCorePaymentProtocolRequest

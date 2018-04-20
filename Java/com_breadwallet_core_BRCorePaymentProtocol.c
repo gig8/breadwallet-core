@@ -92,8 +92,7 @@ Java_com_breadwallet_core_BRCorePaymentProtocolRequest_getNetwork
  */
 JNIEXPORT jobjectArray JNICALL
 Java_com_breadwallet_core_BRCorePaymentProtocolRequest_getOutputs
-        (JNIEnv *env, jobject thisObject,
-         jbyte pubkeyAddress, jbyte scriptAddress, jstring bech32PrefixString) {
+        (JNIEnv *env, jobject thisObject) {
     BRPaymentProtocolRequest *request =
             (BRPaymentProtocolRequest *) getJNIReference(env, thisObject);
 
@@ -105,7 +104,7 @@ Java_com_breadwallet_core_BRCorePaymentProtocolRequest_getOutputs
         BRTxOutput *output = (BRTxOutput *) calloc (1, sizeof (BRTxOutput));
         transactionOutputCopy (
                 env,
-                pubkeyAddress, scriptAddress, bech32PrefixString,
+                request->params,
                 output, &request->details->outputs[i]);
 
         jobject outputObject = (*env)->NewObject (env, transactionOutputClass, transactionOutputConstructor, (jlong) output);
@@ -429,13 +428,12 @@ Java_com_breadwallet_core_BRCorePaymentProtocolPayment_getRefundTo
     const BRChainParams *params = payment->transactions[0]->params;
 
     jobjectArray objects = (*env)->NewObjectArray (env, objectCount, transactionOutputClass, 0);
-    jstring bech32PrefixString = (*env)->NewStringUTF(env, params->bech32Prefix);
 
     for (int i = 0; i < objectCount; i++) {
         BRTxOutput *target = (BRTxOutput *) calloc (1, sizeof (BRTxOutput));
         transactionOutputCopy (
                 env,
-                params->pubkeyAddress, params->scriptAddress, bech32PrefixString,
+                params,
                 target, &payment->refundTo[i]);
 
         jobject object = (*env)->NewObject (env, transactionOutputClass, transactionOutputConstructor, (jlong) target);
@@ -480,13 +478,13 @@ Java_com_breadwallet_core_BRCorePaymentProtocolPayment_createPaymentProtocolPaym
  */
 JNIEXPORT jbyteArray JNICALL
 Java_com_breadwallet_core_BRCorePaymentProtocolPayment_serialize
-        (JNIEnv *env, jobject thisObject, jint forkId) {
+        (JNIEnv *env, jobject thisObject) {
     BRPaymentProtocolPayment *payment =
             (BRPaymentProtocolPayment *) getJNIReference(env, thisObject);
 
-    size_t dataLen = BRPaymentProtocolPaymentSerialize (payment, forkId, NULL, 0);
+    size_t dataLen = BRPaymentProtocolPaymentSerialize (payment, NULL, 0);
     uint8_t *data = (uint8_t *) malloc (dataLen);
-    BRPaymentProtocolPaymentSerialize (payment, forkId, data, dataLen);
+    BRPaymentProtocolPaymentSerialize (payment, data, dataLen);
 
     jbyteArray dataByteArray = (*env)->NewByteArray (env, dataLen);
     (*env)->SetByteArrayRegion (env, dataByteArray, 0, dataLen, (jbyte *) data);
@@ -600,7 +598,7 @@ Java_com_breadwallet_core_BRCorePaymentProtocolACK_getRefundTo
         BRTxOutput *target = (BRTxOutput *) calloc (1, sizeof (BRTxOutput));
         transactionOutputCopy (
                 env,
-                params->pubkeyAddress, params->scriptAddress, bech32PrefixString,
+                params,
                 target, &payment->refundTo[i]);
 
         jobject object = (*env)->NewObject (env, transactionOutputClass, transactionOutputConstructor, (jlong) target);
@@ -645,13 +643,12 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_creat
  * Signature: ()[B
  */
 JNIEXPORT jbyteArray JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_serialize
-        (JNIEnv *env, jobject thisObject,
-         jint forkId) {
+        (JNIEnv *env, jobject thisObject) {
     BRPaymentProtocolACK *ack = (BRPaymentProtocolACK *) getJNIReference (env, thisObject);
 
-    size_t dataLen = BRPaymentProtocolACKSerialize (ack, forkId, NULL, 0);
+    size_t dataLen = BRPaymentProtocolACKSerialize (ack, NULL, 0);
     uint8_t *data = (uint8_t *) malloc (dataLen);
-    BRPaymentProtocolACKSerialize (ack, forkId, data, dataLen);
+    BRPaymentProtocolACKSerialize (ack, data, dataLen);
 
     jbyteArray dataByteArray = (*env)->NewByteArray (env, dataLen);
     (*env)->SetByteArrayRegion (env, dataByteArray, 0, dataLen, (jbyte *) data);

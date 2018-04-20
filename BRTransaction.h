@@ -67,9 +67,9 @@ typedef struct {
     uint32_t sequence;
 } BRTxInput;
 
-void BRTxInputSetAddress(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxInput *input, const char *address);
-void BRTxInputSetScript(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxInput *input, const uint8_t *script, size_t scriptLen);
-void BRTxInputSetSignature(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxInput *input, const uint8_t *signature, size_t sigLen);
+void BRTxInputSetAddress(const BRChainParams *params, BRTxInput *input, const char *address);
+void BRTxInputSetScript(const BRChainParams *params, BRTxInput *input, const uint8_t *script, size_t scriptLen);
+void BRTxInputSetSignature(const BRChainParams *params, BRTxInput *input, const uint8_t *signature, size_t sigLen);
 
 typedef struct {
     char address[75];
@@ -81,8 +81,8 @@ typedef struct {
 #define BR_TX_OUTPUT_NONE ((BRTxOutput) { "", 0, NULL, 0 })
 
 // when creating a BRTxOutput struct outside of a BRTransaction, set address or script to NULL when done to free memory
-void BRTxOutputSetAddress(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxOutput *output, const char *address);
-void BRTxOutputSetScript(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, BRTxOutput *output, const uint8_t *script, size_t scriptLen);
+void BRTxOutputSetAddress(const BRChainParams *params, BRTxOutput *output, const char *address);
+void BRTxOutputSetScript(const BRChainParams *params, BRTxOutput *output, const uint8_t *script, size_t scriptLen);
 
 typedef struct {
     const BRChainParams *params;
@@ -109,7 +109,7 @@ BRTransaction *BRTransactionParse(const BRChainParams *params, const uint8_t *bu
 
 // returns number of bytes written to buf, or total bufLen needed if buf is NULL
 // (tx->blockHeight and tx->timestamp are not serialized - except timestamp in motacoin)
-size_t BRTransactionSerialize(const BRTransaction *tx, int forkId, uint8_t *buf, size_t bufLen);
+size_t BRTransactionSerialize(const BRTransaction *tx, uint8_t *buf, size_t bufLen);
 
 // adds an input to tx
 void BRTransactionAddInput(BRTransaction *tx, UInt256 txHash, uint32_t index, uint64_t amount,
@@ -123,10 +123,10 @@ void BRTransactionAddOutput(BRTransaction *tx, uint64_t amount, const uint8_t *s
 void BRTransactionShuffleOutputs(BRTransaction *tx);
 
 // size in bytes if signed, or estimated size assuming compact pubkey sigs
-size_t BRTransactionSize(const BRTransaction *tx, int forkId);
+size_t BRTransactionSize(const BRTransaction *tx);
     
 // minimum transaction fee needed for tx to relay across the bitcoin network
-uint64_t BRTransactionStandardFee(const BRTransaction *tx, int forkId);
+uint64_t BRTransactionStandardFee(const BRTransaction *tx);
 
 // checks if all signatures exist, but does not verify them
 int BRTransactionIsSigned(const BRTransaction *tx);

@@ -25,8 +25,8 @@
 package com.breadwallet.core;
 
 public class BRCorePaymentProtocolACK extends BRCoreJniReference {
-    public BRCorePaymentProtocolACK(byte[] data) {
-        this(createPaymentProtocolACK(data));
+    public BRCorePaymentProtocolACK(BRCoreChainParams params, byte[] data) {
+        this(createPaymentProtocolACK(params, data));
     }
 
     protected BRCorePaymentProtocolACK(long jniReferenceAddress) {
@@ -43,7 +43,7 @@ public class BRCorePaymentProtocolACK extends BRCoreJniReference {
 
     public native String getMerchantMemo ();
 
-    private static native long createPaymentProtocolACK(byte[] data);
+    private static native long createPaymentProtocolACK(BRCoreChainParams params, byte[] data);
 
     public native byte[] serialize ();
 

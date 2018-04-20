@@ -38,21 +38,27 @@ public class BRCoreTransactionInput extends BRCoreJniReference {
      * @param signature
      * @param sequence The sequence number.  If -1, TXIN_SEQUENCE will be used.
      */
-    public BRCoreTransactionInput (byte[] hash, long index, long amount,
+    public BRCoreTransactionInput (
+            BRCoreChainParams params,
+            byte[] hash, long index, long amount,
                                    byte[] script,
                                    byte[] signature,
                                    long sequence) {
-        this (createTransactionInput(hash, index, amount, script, signature, sequence));
+        this (createTransactionInput(
+                params,
+                hash, index, amount, script, signature, sequence));
     }
 
     public BRCoreTransactionInput(long jniReferenceAddress) {
         super(jniReferenceAddress);
     }
 
-    protected static native long createTransactionInput (byte[] hash, long index, long amount,
-                                                         byte[] script,
-                                                         byte[] signature,
-                                                         long sequence);
+    protected static native long createTransactionInput (
+            BRCoreChainParams params,
+            byte[] hash, long index, long amount,
+             byte[] script,
+             byte[] signature,
+             long sequence);
 
     public native String getAddress ();
 

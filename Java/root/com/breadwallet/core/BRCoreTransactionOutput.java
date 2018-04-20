@@ -26,17 +26,23 @@ package com.breadwallet.core;
 
 public class BRCoreTransactionOutput extends BRCoreJniReference {
 
-    public BRCoreTransactionOutput(long amount,
+    public BRCoreTransactionOutput(
+            BRCoreChainParams params,
+            long amount,
                                    byte[] script) {
-        this(createTransactionOutput(amount, script));
+        this(createTransactionOutput(
+                params,
+                amount, script));
     }
 
     public BRCoreTransactionOutput(long jniReferenceAddress) {
         super(jniReferenceAddress);
     }
 
-    protected static native long createTransactionOutput(long amount,
-                                                         byte[] script);
+    protected static native long createTransactionOutput(
+            BRCoreChainParams params,
+            long amount,
+            byte[] script);
 
     public native String getAddress();
 

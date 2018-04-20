@@ -26,6 +26,7 @@
 #define BRAddress_h
 
 #include "BRCrypto.h"
+#include "BRChainParams.h"
 #include <string.h>
 #include <stddef.h>
 #include <inttypes.h>
@@ -88,11 +89,11 @@ typedef struct {
 
 // writes the bitcoin address for a scriptPubKey to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
-size_t BRAddressFromScriptPubKey(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, char *addr, size_t addrLen, const uint8_t *script, size_t scriptLen);
+size_t BRAddressFromScriptPubKey(const BRChainParams *params, char *addr, size_t addrLen, const uint8_t *script, size_t scriptLen);
 
 // writes the bitcoin address for a scriptSig to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
-size_t BRAddressFromScriptSig(uint8_t pubkeyAddress, uint8_t scriptAddress, char *addr, size_t addrLen, const uint8_t *script, size_t scriptLen);
+size_t BRAddressFromScriptSig(const BRChainParams *params, char *addr, size_t addrLen, const uint8_t *script, size_t scriptLen);
 
 // writes the bitcoin address for a witness to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
@@ -100,10 +101,10 @@ size_t BRAddressFromWitness(char *addr, size_t addrLen, const uint8_t *witness, 
 
 // writes the scriptPubKey for addr to script
 // returns the number of bytes written, or scriptLen needed if script is NULL
-size_t BRAddressScriptPubKey(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, uint8_t *script, size_t scriptLen, const char *addr);
+size_t BRAddressScriptPubKey(const BRChainParams *params, uint8_t *script, size_t scriptLen, const char *addr);
 
 // returns true if addr is a valid bitcoin address
-int BRAddressIsValid(uint8_t pubkeyAddress, uint8_t scriptAddress, const char *bech32Prefix, const char *addr);
+int BRAddressIsValid(const BRChainParams *params, const char *addr);
 
 // writes the 20 byte hash160 of addr to md20 and returns true on success
 int BRAddressHash160(void *md20, const char *addr);

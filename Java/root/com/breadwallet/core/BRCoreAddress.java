@@ -44,23 +44,36 @@ public class BRCoreAddress extends BRCoreJniReference {
 
     protected static native long createCoreAddress (String address);
 
-    protected static native long createCoreAddressFromScriptPubKey (byte[] script);
+    protected static native long createCoreAddressFromScriptPubKey (
+            BRCoreChainParams params,
+            byte[] script);
 
-    public static BRCoreAddress fromScriptPubKey (byte[] script) {
-        return new BRCoreAddress (createCoreAddressFromScriptPubKey (script));
+    public static BRCoreAddress fromScriptPubKey (
+            BRCoreChainParams params,
+            byte[] script) {
+        return new BRCoreAddress (createCoreAddressFromScriptPubKey (
+                params,
+                script));
     }
 
-    protected static native long createCoreAddressFromScriptSignature (byte[] script);
+    protected static native long createCoreAddressFromScriptSignature (
+            BRCoreChainParams params,
+            byte[] script);
 
-    public static BRCoreAddress fromScriptSignature (byte[] script) {
-        return new BRCoreAddress (createCoreAddressFromScriptSignature (script));
+    public static BRCoreAddress fromScriptSignature (
+            BRCoreChainParams params,
+            byte[] script) {
+        return new BRCoreAddress (createCoreAddressFromScriptSignature (
+                params,
+                script));
     }
 
     public native String stringify ();
 
-    public native boolean isValid ();
+    public native boolean isValid (
+            BRCoreChainParams params);
 
-    public native byte[] getPubKeyScript();
+    public native byte[] getPubKeyScript(BRCoreChainParams params);
 
     /**
      * Decode a bitcash address into a bitcoin address.
