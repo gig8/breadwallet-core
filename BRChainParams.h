@@ -29,6 +29,11 @@
 #include "BRSet.h"
 #include <assert.h>
 
+#define BITCOIN_PUBKEY_ADDRESS      0
+#define BITCOIN_SCRIPT_ADDRESS      5
+#define BITCOIN_PUBKEY_ADDRESS_TEST 111
+#define BITCOIN_SCRIPT_ADDRESS_TEST 196
+
 typedef struct {
     uint32_t height;
     UInt256 hash;
@@ -53,6 +58,8 @@ typedef struct {
     size_t blockHeaderSize;
     size_t blockHeaderSpacing;
     size_t blockHeaderNLimit;
+    uint8_t pubkeyAddress;
+    uint8_t scriptAddress;
 } BRChainParams;
 
 static const char *BRMainNetDNSSeeds[] = {
@@ -152,6 +159,8 @@ static const BRChainParams BRMainNetParams = {
     80, // blockHeaderSize
     1,  // blockHeaderSpacing
     2000, // blockHeaderNLimit
+    BITCOIN_PUBKEY_ADDRESS, // pubkeyAddress
+    BITCOIN_SCRIPT_ADDRESS, // scriptAddress
 };
 
 static const BRChainParams BRTestNetParams = {
@@ -171,6 +180,8 @@ static const BRChainParams BRTestNetParams = {
     80, // blockHeaderSize
     1,  // blockHeaderSpacing
     2000, // blockHeaderNLimit
+    BITCOIN_PUBKEY_ADDRESS_TEST, // pubkeyAddress
+    BITCOIN_SCRIPT_ADDRESS_TEST, // scriptAddress
 };
 
 #endif // BRChainParams_h

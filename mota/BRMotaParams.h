@@ -30,6 +30,11 @@
 #include "BRPeer.h"
 #include "BRInt.h"
 
+#define MOTA_PUBKEY_ADDRESS 50
+#define MOTA_SCRIPT_ADDRESS 110
+#define MOTA_PUBKEY_ADDRESS_TEST 111
+#define MOTA_SCRIPT_ADDRESS_TEST 196
+
 static const char *BRMotaDNSSeeds[] = {
     "explorer.motacoin.vip", NULL
 };
@@ -117,6 +122,8 @@ static const BRChainParams BRMotaParams = {
     80, // blockHeaderSize
     2,  // blockHeaderSpacing
     1500, // blockHeaderNLimit
+    MOTA_PUBKEY_ADDRESS, // pubkeyAddress
+    MOTA_SCRIPT_ADDRESS, // scriptAddress
 };
 
 static const BRChainParams BRMotaTestNetParams = {
@@ -136,6 +143,8 @@ static const BRChainParams BRMotaTestNetParams = {
     80, // blockHeaderSize
     2,  // blockHeaderSpacing
     1500, // blockHeaderNLimit
+    MOTA_PUBKEY_ADDRESS_TEST, // pubkeyAddress
+    MOTA_SCRIPT_ADDRESS_TEST, // scriptAddress
 };
 
 #endif // BRMotaParams_h
