@@ -764,9 +764,14 @@ static int _BRPeerAcceptMerkleblockMessage(BRPeer *peer, const uint8_t *msg, siz
     }
     else if (! BRMerkleBlockIsValid(block, (uint32_t)time(NULL), ctx->params->maxProofOfWork, ctx->params->maxProofOfStake)) {
         peer_log(peer, "invalid merkleblock: %s", u256hex(block->blockHash));
-        BRMerkleBlockFree(block);
-        block = NULL;
-        r = 0;
+        if (ctx->params->magicNumber == 0x4a304a30) {
+            peer_log(peer, "motacoin PoS block?");  // figure this out later
+        }
+        else {
+            BRMerkleBlockFree(block);
+            block = NULL;
+            r = 0;
+        }
     }
     else if (! ctx->sentFilter && ! ctx->sentGetdata) {
         peer_log(peer, "got merkleblock message before loading a filter");
@@ -895,7 +900,6 @@ static int _BRPeerAcceptMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen,
     else if (strncmp(MSG_NOTFOUND, type, 12) == 0) r = _BRPeerAcceptNotfoundMessage(peer, msg, msgLen);
     else if (strncmp(MSG_PING, type, 12) == 0) r = _BRPeerAcceptPingMessage(peer, msg, msgLen);
     else if (strncmp(MSG_PONG, type, 12) == 0) r = _BRPeerAcceptPongMessage(peer, msg, msgLen);
-    else if (strncmp(MSG_BLOCK, type, 12) == 0) r = _BRPeerAcceptMerkleblockMessage(peer, msg, msgLen);
     else if (strncmp(MSG_MERKLEBLOCK, type, 12) == 0) r = _BRPeerAcceptMerkleblockMessage(peer, msg, msgLen);
     else if (strncmp(MSG_REJECT, type, 12) == 0) r = _BRPeerAcceptRejectMessage(peer, msg, msgLen);
     else if (strncmp(MSG_FEEFILTER, type, 12) == 0) r = _BRPeerAcceptFeeFilterMessage(peer, msg, msgLen);

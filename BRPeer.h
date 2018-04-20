@@ -80,7 +80,6 @@ extern "C" {
 #define MSG_FILTERADD   "filteradd"
 #define MSG_FILTERCLEAR "filterclear"
 #define MSG_MERKLEBLOCK "merkleblock"
-#define MSG_BLOCK       "block"
 #define MSG_ALERT       "alert"
 #define MSG_REJECT      "reject"   // described in BIP61: https://github.com/bitcoin/bips/blob/master/bip-0061.mediawiki
 #define MSG_FEEFILTER   "feefilter"// described in BIP133 https://github.com/bitcoin/bips/blob/master/bip-0133.mediawiki
