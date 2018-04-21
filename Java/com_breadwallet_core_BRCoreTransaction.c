@@ -398,12 +398,13 @@ Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransaction
          jbyteArray transactionByteArray,
          jlong blockHeight,
          jlong timestamp) {
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     // static native long createJniCoreTransaction (byte[] buffer, long blockHeight, long timeStamp);
     size_t transactionSize = (size_t) (*env)->GetArrayLength (env, transactionByteArray);
     const uint8_t *transactionData = (const uint8_t *) (*env)->GetByteArrayElements (env, transactionByteArray, 0);
 
-    BRTransaction *transaction = BRTransactionParse(objParams, transactionData, transactionSize);
+    BRTransaction *transaction = BRTransactionParse(params, transactionData, transactionSize);
     assert (NULL != transaction);
 
     transaction->blockHeight = (uint32_t) blockHeight;
@@ -421,12 +422,13 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCor
         (JNIEnv *env, jclass thisClass,
          jobject objParams,
          jbyteArray transactionByteArray) {
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     // static native long createJniCoreTransaction (byte[] buffer, long blockHeight, long timeStamp);
     size_t transactionSize = (size_t) (*env)->GetArrayLength (env, transactionByteArray);
     const uint8_t *transactionData = (const uint8_t *) (*env)->GetByteArrayElements (env, transactionByteArray, 0);
 
-    BRTransaction *transaction = BRTransactionParse(objParams, transactionData, transactionSize);
+    BRTransaction *transaction = BRTransactionParse(params, transactionData, transactionSize);
     assert (NULL != transaction);
 
     return (jlong) transaction;
@@ -440,5 +442,6 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCor
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreTransaction_createJniCoreTransactionEmpty
         (JNIEnv *env, jclass thisClass,
          jobject objParams) {
-    return (jlong) BRTransactionNew(objParams);
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
+    return (jlong) BRTransactionNew(params);
 }

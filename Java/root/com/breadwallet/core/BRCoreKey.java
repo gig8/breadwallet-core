@@ -117,7 +117,7 @@ public class BRCoreKey extends BRCoreJniReference {
 
     public static native String getAuthPublicKeyForAPI (byte[] privKey);
 
-    public static native String decryptBip38Key (String privKey, String pass);
+    public static native String decryptBip38Key (BRCoreChainParams params, String privKey, String pass);
 
     //
     //
@@ -141,7 +141,7 @@ public class BRCoreKey extends BRCoreJniReference {
     //
     //
     //
-    public native String address();
+    public native String address(BRCoreChainParams params);
 
     //
     //

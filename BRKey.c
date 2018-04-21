@@ -51,6 +51,8 @@
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include "secp256k1/src/basic-config.h"
 #include "secp256k1/src/secp256k1.c"
+#include "BRChainParams.h"
+
 #pragma clang diagnostic pop
 #pragma GCC diagnostic pop
 
@@ -283,7 +285,7 @@ UInt160 BRKeyHash160(BRKey *key)
 
 // writes the pay-to-pubkey-hash bitcoin address for key to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
-size_t BRKeyAddress(BRKey *key, char *addr, size_t addrLen)
+size_t BRKeyAddress(BRKey *key, const BRChainParams *params, char *addr, size_t addrLen)
 {
     UInt160 hash;
     uint8_t data[21];
@@ -291,10 +293,7 @@ size_t BRKeyAddress(BRKey *key, char *addr, size_t addrLen)
     assert(key != NULL);
     
     hash = BRKeyHash160(key);
-    data[0] = BITCOIN_PUBKEY_ADDRESS;
-#if BITCOIN_TESTNET
-    data[0] = BITCOIN_PUBKEY_ADDRESS_TEST;
-#endif
+    data[0] = params->pubkeyAddress;
     UInt160Set(&data[1], hash);
 
     if (! UInt160IsZero(hash)) {

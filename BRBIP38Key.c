@@ -231,7 +231,7 @@ int BRBIP38KeyIsValid(const char *bip38Key)
 
 // decrypts a BIP38 key using the given passphrase and returns false if passphrase is incorrect
 // passphrase must be unicode NFC normalized: http://www.unicode.org/reports/tr15/#Norm_Forms
-int BRKeySetBIP38Key(BRKey *key, const char *bip38Key, const char *passphrase)
+int BRKeySetBIP38Key(BRKey *key, const BRChainParams *params, const char *bip38Key, const char *passphrase)
 {
     int r = 1;
     uint8_t data[39];
@@ -305,7 +305,7 @@ int BRKeySetBIP38Key(BRKey *key, const char *bip38Key, const char *passphrase)
     
     BRKeySetSecret(key, &secret, flag & BIP38_COMPRESSED_FLAG);
     var_clean(&secret);
-    BRKeyAddress(key, address.s, sizeof(address));
+    BRKeyAddress(key, params, address.s, sizeof(address));
     BRSHA256_2(&hash, address.s, strlen(address.s));
     if (! address.s[0] || memcmp(&hash, addresshash, sizeof(uint32_t)) != 0) r = 0;
     return r;
@@ -342,7 +342,7 @@ void BRKeySetBIP38ItermediateCode(BRKey *key, const char *code, const uint8_t *s
 // encrypts key with passphrase
 // passphrase must be unicode NFC normalized
 // returns number of bytes written to bip38Key including NULL terminator or total bip38KeyLen needed if bip38Key is NULL
-size_t BRKeyBIP38Key(BRKey *key, char *bip38Key, size_t bip38KeyLen, const char *passphrase)
+size_t BRKeyBIP38Key(BRKey *key, const BRChainParams *params, char *bip38Key, size_t bip38KeyLen, const char *passphrase)
 {
     uint16_t prefix = BIP38_NOEC_PREFIX;
     uint8_t buf[39], flag = BIP38_NOEC_FLAG;
@@ -359,7 +359,7 @@ size_t BRKeyBIP38Key(BRKey *key, char *bip38Key, size_t bip38KeyLen, const char 
     assert(passphrase != NULL);
    
     if (key->compressed) flag |= BIP38_COMPRESSED_FLAG;
-    BRKeyAddress(key, address.s, sizeof(address));
+    BRKeyAddress(key, params, address.s, sizeof(address));
     BRSHA256_2(&hash, address.s, strlen(address.s));
     salt = hash.u32[0];
 

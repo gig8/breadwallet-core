@@ -72,9 +72,10 @@ Java_com_breadwallet_core_BRCoreWallet_createJniCoreWallet
         (JNIEnv *env, jclass thisClass,
          jobjectArray objTransactionsArray,
          jobject objMasterPubKey,
-         jobject params) {
+         jobject objParams) {
 
     BRMasterPubKey *masterPubKey = (BRMasterPubKey *) getJNIReference(env, objMasterPubKey);
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     // Transactions
     size_t transactionsCount = (*env)->GetArrayLength(env, objTransactionsArray);

@@ -64,7 +64,7 @@ JNI_OnLoad (JavaVM *theJvm, void *reserved) {
 //
 extern void
 transactionInputCopy(JNIEnv *env,
-                     jobject objParams,
+                     const BRChainParams *params,
                      BRTxInput *target,
                      const BRTxInput *source) {
 
@@ -73,17 +73,17 @@ transactionInputCopy(JNIEnv *env,
     *target = *source;
 
     target->script = NULL;
-    BRTxInputSetScript(objParams,
+    BRTxInputSetScript(params,
                        target, source->script, source->scriptLen);
 
     target->signature = NULL;
-    BRTxInputSetSignature(objParams,
+    BRTxInputSetSignature(params,
                           target, source->signature, source->sigLen);
 }
 
 extern void
 transactionOutputCopy (JNIEnv *env,
-                       jobject objParams,
+                       const BRChainParams *params,
                        BRTxOutput *target,
                        const BRTxOutput *source) {
 
@@ -92,7 +92,7 @@ transactionOutputCopy (JNIEnv *env,
     *target = *source;
 
     target->script = NULL;
-    BRTxOutputSetScript(objParams,
+    BRTxOutputSetScript(params,
                         target, source->script, source->scriptLen);
 }
 

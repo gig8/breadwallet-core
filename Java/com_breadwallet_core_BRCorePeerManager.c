@@ -341,7 +341,6 @@ Java_com_breadwallet_core_BRCorePeerManager_createCorePeerManager
          jdouble dblEarliestKeyTime,
          jobjectArray objBlocksArray,
          jobjectArray objPeersArray) {
-
     BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
     BRWallet *wallet = (BRWallet *) getJNIReference(env, objWallet);
     uint32_t earliestKeyTime = (uint32_t) dblEarliestKeyTime;

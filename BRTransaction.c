@@ -581,7 +581,7 @@ int BRTransactionSign(BRTransaction *tx, BRKey keys[], size_t keysCount)
     assert(keys != NULL || keysCount == 0);
     
     for (i = 0; tx && i < keysCount; i++) {
-        if (! BRKeyAddress(&keys[i], addrs[i].s, sizeof(addrs[i]))) addrs[i] = BR_ADDRESS_NONE;
+        if (! BRKeyAddress(&keys[i], tx->params, addrs[i].s, sizeof(addrs[i]))) addrs[i] = BR_ADDRESS_NONE;
     }
     
     for (i = 0; tx && i < tx->inCount; i++) {

@@ -26,6 +26,7 @@
 #define BRKey_h
 
 #include "BRInt.h"
+#include "BRChainParams.h"
 #include <stddef.h>
 #include <inttypes.h>
 
@@ -89,7 +90,7 @@ UInt160 BRKeyHash160(BRKey *key);
 
 // writes the pay-to-pubkey-hash bitcoin address for key to addr
 // returns the number of bytes written, or addrLen needed if addr is NULL
-size_t BRKeyAddress(BRKey *key, char *addr, size_t addrLen);
+size_t BRKeyAddress(BRKey *key, const BRChainParams *params, char *addr, size_t addrLen);
 
 // signs md with key and writes signature to sig
 // returns the number of bytes written, or sigLen needed if sig is NULL

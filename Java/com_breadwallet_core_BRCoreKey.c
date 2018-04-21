@@ -195,13 +195,16 @@ JNIEXPORT jstring JNICALL Java_com_breadwallet_core_BRCoreKey_getAuthPublicKeyFo
  * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_breadwallet_core_BRCoreKey_decryptBip38Key
-        (JNIEnv *env, jclass thisClass, jstring privKey, jstring pass) {
+        (JNIEnv *env, jclass thisClass,
+         jobject objParams,
+         jstring privKey, jstring pass) {
     //__android_log_print(ANDROID_LOG_DEBUG, "Message from C: ", "decryptBip38Key");
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     BRKey key;
     const char *rawPrivKey = (*env)->GetStringUTFChars(env, privKey, NULL);
     const char *rawPass = (*env)->GetStringUTFChars(env, pass, NULL);
-    int result = BRKeySetBIP38Key(&key, rawPrivKey, rawPass);
+    int result = BRKeySetBIP38Key(&key, params, rawPrivKey, rawPass);
 
     if (result) {
         char pk[BRKeyPrivKey(&key, NULL, 0)];
@@ -375,11 +378,12 @@ Java_com_breadwallet_core_BRCoreKey_decryptNative
  */
 JNIEXPORT jstring JNICALL
 Java_com_breadwallet_core_BRCoreKey_address
-        (JNIEnv *env, jobject thisObject) {
+        (JNIEnv *env, jobject thisObject, jobject objParams) {
     BRKey *key = (BRKey *) getJNIReference(env, thisObject);
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     BRAddress address = BR_ADDRESS_NONE;
-    BRKeyAddress (key, address.s, sizeof(address));
+    BRKeyAddress (key, params, address.s, sizeof(address));
     assert(address.s[0] != '\0');
 
     return (*env)->NewStringUTF(env, address.s);

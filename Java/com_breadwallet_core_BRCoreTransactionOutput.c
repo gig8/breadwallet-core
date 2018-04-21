@@ -39,6 +39,7 @@ Java_com_breadwallet_core_BRCoreTransactionOutput_createTransactionOutput
          jlong amount,
          jbyteArray scriptByteArray) {
     BRTxOutput *output = (BRTxOutput *) calloc(1, sizeof(BRTxOutput));
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     // script
     output->script = NULL;
@@ -48,7 +49,7 @@ Java_com_breadwallet_core_BRCoreTransactionOutput_createTransactionOutput
              ? NULL
              : (*env)->GetByteArrayElements(env, scriptByteArray, 0));
     BRTxOutputSetScript(
-            objParams,
+            params,
             output, script, scriptLen);
 
     output->amount = (uint64_t) amount;

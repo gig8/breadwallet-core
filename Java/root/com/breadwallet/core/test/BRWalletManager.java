@@ -264,6 +264,7 @@ public class BRWalletManager extends BRCoreWalletManager {
         BRCoreAddress addr1;
         BRCoreAddress addr2;
 
+        BRCoreChainParams params = BRCoreChainParams.mainnetChainParams;
         //
         //
         //
@@ -275,18 +276,18 @@ public class BRWalletManager extends BRCoreWalletManager {
         };
 
         key = new BRCoreKey(secret, true);
-        System.out.println("            " + key.address());
+        System.out.println("            " + key.address(params));
 
-        addr1 = new BRCoreAddress(key.address());
-        asserting (addr1.isValid(BRCoreChainParams.testnetChainParams));
+        addr1 = new BRCoreAddress(key.address(params));
+        asserting (addr1.isValid(params));
 
-        byte[] script = addr1.getPubKeyScript(BRCoreChainParams.testnetChainParams);
+        byte[] script = addr1.getPubKeyScript(params);
 
-        addr2 = BRCoreAddress.fromScriptPubKey(BRCoreChainParams.testnetChainParams, script);
+        addr2 = BRCoreAddress.fromScriptPubKey(params, script);
         asserting (addr1.stringify().equals(addr2.stringify()));
 
         System.out.println("        BitCash:");
-        String bitcoinAddr1 = key.address();
+        String bitcoinAddr1 = key.address(params);
         System.out.println("          Coin: " + bitcoinAddr1);
         String bitcashAddr  = BRCoreAddress.bcashEncodeBitcoin(bitcoinAddr1);
         System.out.println("          Cash: " + bitcashAddr);
@@ -300,10 +301,10 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         BRCoreAddress addrX1 = new BRCoreAddress(
                 "bitcoincash:qzc93708k7x0w3gr32thxc5fla38xf8x8vq8h33fva");
-        asserting (!addrX1.isValid(BRCoreChainParams.mainnetBcashChainParams));
+        asserting (!addrX1.isValid(params));
         BRCoreAddress addrX2 = new BRCoreAddress(
                 BRCoreAddress.bcashDecodeBitcoin("bitcoincash:qzc93708k7x0w3gr32thxc5fla38xf8x8vq8h33fva"));
-        asserting (addrX2.isValid(BRCoreChainParams.mainnetBcashChainParams));
+        asserting (addrX2.isValid(params));
 
         //
         //
@@ -351,13 +352,13 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         asserting (BRCoreKey.isValidBitcoinPrivateKey("S6c56bnXQiBjk9mqSYE7ykVQ7NzrRy"));
         key = new BRCoreKey("S6c56bnXQiBjk9mqSYE7ykVQ7NzrRy");
-        addrString = key.address();
+        addrString = key.address(params);
         System.out.println("            privKey:S6c56bnXQiBjk9mqSYE7ykVQ7NzrRy = " + addrString);
         asserting (addrString.equals("1CciesT23BNionJeXrbxmjc7ywfiyM4oLW"));
 
         asserting (BRCoreKey.isValidBitcoinPrivateKey("SzavMBLoXU6kDrqtUVmffv"));
         key = new BRCoreKey("SzavMBLoXU6kDrqtUVmffv");
-        addrString = key.address();
+        addrString = key.address(params);
         System.out.println("            privKey:SzavMBLoXU6kDrqtUVmffv = " + addrString);
         asserting (addrString.equals("1CC3X2gu58d6wXUWMffpuzN9JAfTUWu4Kj"));
 
@@ -367,7 +368,7 @@ public class BRWalletManager extends BRCoreWalletManager {
         // uncompressed private key
         asserting (BRCoreKey.isValidBitcoinPrivateKey("5Kb8kLf9zgWQnogidDA76MzPL6TsZZY36hWXMssSzNydYXYB9KF"));
         key = new BRCoreKey("5Kb8kLf9zgWQnogidDA76MzPL6TsZZY36hWXMssSzNydYXYB9KF");
-        addrString = key.address();
+        addrString = key.address(params);
         System.out.println("            privKey:5Kb8kLf9zgWQnogidDA76MzPL6TsZZY36hWXMssSzNydYXYB9KF = " + addrString);
         asserting (addrString.equals("1CC3X2gu58d6wXUWMffpuzN9JAfTUWu4Kj"));
 
@@ -379,7 +380,7 @@ public class BRWalletManager extends BRCoreWalletManager {
         // compressed private key
         asserting (BRCoreKey.isValidBitcoinPrivateKey("KyvGbxRUoofdw3TNydWn2Z78dBHSy2odn1d3wXWN2o3SAtccFNJL"));
         key = new BRCoreKey("KyvGbxRUoofdw3TNydWn2Z78dBHSy2odn1d3wXWN2o3SAtccFNJL");
-        addrString = key.address();
+        addrString = key.address(params);
         System.out.println("            privKey:KyvGbxRUoofdw3TNydWn2Z78dBHSy2odn1d3wXWN2o3SAtccFNJL = " + addrString);
         asserting (addrString.equals("1JMsC6fCtYWkTjPPdDrYX3we2aBrewuEM3"));
 
@@ -434,6 +435,8 @@ public class BRWalletManager extends BRCoreWalletManager {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
         };
 
+        BRCoreChainParams params = BRCoreChainParams.mainnetChainParams;
+
         BRCoreKey k[] = new BRCoreKey[]{
                 new BRCoreKey(),
                 new BRCoreKey(secret, true)
@@ -441,22 +444,22 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         System.out.println("        One Input / Two Outputs:");
 
-        BRCoreAddress address = new BRCoreAddress(k[1].address());
+        BRCoreAddress address = new BRCoreAddress(k[1].address(params));
         System.out.println("            Address: " + address.stringify());
 
-        byte[] script = address.getPubKeyScript(BRCoreChainParams.testnetChainParams);
+        byte[] script = address.getPubKeyScript(params);
         System.out.println("            Script : " + Arrays.toString(script));
 
         //Address: 1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
         //Script : [118, -87, 20, 117, 30, 118, -24, 25, -111, -106, -44, 84, -108, 28, 69, -47, -77, -93, 35, -15, 67, 59, -42, -120, -84]
 
-        BRCoreTransaction transaction = new BRCoreTransaction(BRCoreChainParams.testnetChainParams);
+        BRCoreTransaction transaction = new BRCoreTransaction(params);
         transaction.addInput(
-                new BRCoreTransactionInput(BRCoreChainParams.testnetChainParams, inHash, 0, 1, script, new byte[]{}, 4294967295L));
+                new BRCoreTransactionInput(params, inHash, 0, 1, script, new byte[]{}, 4294967295L));
         transaction.addOutput(
-                new BRCoreTransactionOutput(BRCoreChainParams.testnetChainParams, 100000000L, script));
+                new BRCoreTransactionOutput(params, 100000000L, script));
         transaction.addOutput(
-                new BRCoreTransactionOutput(BRCoreChainParams.testnetChainParams, 4900000000L, script));
+                new BRCoreTransactionOutput(params, 4900000000L, script));
 
         byte[] transactionSerialized = transaction.serialize();
         System.out.println("            Transaction: " + Arrays.toString(transactionSerialized));
@@ -464,7 +467,7 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         asserting (transactionSerialized.length != 0);
 
-        BRCoreTransaction transactionFromSerialized = new BRCoreTransaction(BRCoreChainParams.testnetChainParams, transactionSerialized);
+        BRCoreTransaction transactionFromSerialized = new BRCoreTransaction(params, transactionSerialized);
 
         asserting (transactionFromSerialized.getInputs().length == 1
                 && transactionFromSerialized.getOutputs().length == 2);
@@ -482,45 +485,45 @@ public class BRWalletManager extends BRCoreWalletManager {
 //        asserting (address.stringify().equals(sigAddress.stringify()));
 
         transactionSerialized = transaction.serialize();
-        transactionFromSerialized = new BRCoreTransaction (BRCoreChainParams.testnetChainParams, transactionSerialized);
+        transactionFromSerialized = new BRCoreTransaction (params, transactionSerialized);
         asserting (transactionFromSerialized.isSigned());
 
         asserting (Arrays.equals(transactionSerialized, transactionFromSerialized.serialize()));
 
         System.out.println("        Five Inputs / Four Outputs:");
 
-        transaction = new BRCoreTransaction(BRCoreChainParams.testnetChainParams);
+        transaction = new BRCoreTransaction(params);
         transaction.addInput(
-                new BRCoreTransactionInput(BRCoreChainParams.testnetChainParams, inHash, 0, 1, script, new byte[]{}, 4294967295L));
+                new BRCoreTransactionInput(params, inHash, 0, 1, script, new byte[]{}, 4294967295L));
         transaction.addInput(
-                new BRCoreTransactionInput(BRCoreChainParams.testnetChainParams, inHash, 0, 1, script, new byte[]{}, 4294967295L));
+                new BRCoreTransactionInput(params, inHash, 0, 1, script, new byte[]{}, 4294967295L));
         transaction.addInput(
-                new BRCoreTransactionInput(BRCoreChainParams.testnetChainParams, inHash, 0, 1, script, new byte[]{}, 4294967295L));
+                new BRCoreTransactionInput(params, inHash, 0, 1, script, new byte[]{}, 4294967295L));
         transaction.addInput(
-                new BRCoreTransactionInput(BRCoreChainParams.testnetChainParams, inHash, 0, 1, script, new byte[]{}, 4294967295L));
+                new BRCoreTransactionInput(params, inHash, 0, 1, script, new byte[]{}, 4294967295L));
         transaction.addInput(
-                new BRCoreTransactionInput(BRCoreChainParams.testnetChainParams, inHash, 0, 1, script, new byte[]{}, 4294967295L));
+                new BRCoreTransactionInput(params, inHash, 0, 1, script, new byte[]{}, 4294967295L));
 
         transaction.addOutput(
-                new BRCoreTransactionOutput(BRCoreChainParams.testnetChainParams, 4900000000L, script));
+                new BRCoreTransactionOutput(params, 4900000000L, script));
         transaction.addOutput(
-                new BRCoreTransactionOutput(BRCoreChainParams.testnetChainParams, 4900000000L, script));
+                new BRCoreTransactionOutput(params, 4900000000L, script));
         transaction.addOutput(
-                new BRCoreTransactionOutput(BRCoreChainParams.testnetChainParams, 4900000000L, script));
+                new BRCoreTransactionOutput(params, 4900000000L, script));
         transaction.addOutput(
-                new BRCoreTransactionOutput(BRCoreChainParams.testnetChainParams, 4900000000L, script));
+                new BRCoreTransactionOutput(params, 4900000000L, script));
 
         transaction.sign(k);
         asserting (transaction.isSigned());
         BRCoreTransactionInput inputs[] = transaction.getInputs();
-        sigAddress = BRCoreAddress.fromScriptSignature(BRCoreChainParams.testnetChainParams,
+        sigAddress = BRCoreAddress.fromScriptSignature(params,
                 inputs[inputs.length - 1].getScript());
         // TODO: Fix
         // asserting (address.stringify().equals(sigAddress.stringify()));
 
         System.out.println("        Set Output Amount:");
 
-        BRCoreTransactionOutput out1 = new BRCoreTransactionOutput(BRCoreChainParams.testnetChainParams, 4900000000L, script);
+        BRCoreTransactionOutput out1 = new BRCoreTransactionOutput(params, 4900000000L, script);
         asserting (4900000000L == out1.getAmount());
         out1.setAmount(100);
         asserting (100 == out1.getAmount());
@@ -537,6 +540,8 @@ public class BRWalletManager extends BRCoreWalletManager {
 
     private static void runPaymentProtocolInvoiceRequestTest() {
         System.out.println("        InvoiceRequest");
+
+        BRCoreChainParams params = BRCoreChainParams.mainnetChainParams;
 
         byte[] secret = { // 32
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -646,7 +651,7 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         // A random addr
         BRCoreKey k = new BRCoreKey(secret, true);
-        BRCoreAddress addr = new BRCoreAddress(k.address());
+        BRCoreAddress addr = new BRCoreAddress(k.address(params));
 
         BRCoreTransaction tx = w.createTransaction(1, addr);
         asserting(null == tx); // no money
@@ -806,13 +811,14 @@ public class BRWalletManager extends BRCoreWalletManager {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1
         };
 
+        BRCoreChainParams params = BRCoreChainParams.mainnetChainParams;
 
         final byte[] randomSeed = new SecureRandom().generateSeed(16);
         byte[] phrase = BRCoreMasterPubKey.generatePaperKey(randomSeed, words);
 
         BRCoreMasterPubKey mpk = new BRCoreMasterPubKey(phrase, true);
 
-        BRCoreWalletManager wm = new BRCoreWalletManager(mpk, BRCoreChainParams.mainnetChainParams, -1);
+        BRCoreWalletManager wm = new BRCoreWalletManager(mpk, params, -1);
 
         BRCoreWallet w = wm.getWallet();
         asserting(null != w);
@@ -820,18 +826,18 @@ public class BRWalletManager extends BRCoreWalletManager {
 
         // A random addr
         BRCoreKey k = new BRCoreKey(secret, true);
-        BRCoreAddress addr = new BRCoreAddress(k.address());
+        BRCoreAddress addr = new BRCoreAddress(k.address(params));
 
-        byte[] inScript = addr.getPubKeyScript(wm.getParams());      // from rando
-        byte[] outScript = recvAddr.getPubKeyScript(wm.getParams());  // to me
+        byte[] inScript = addr.getPubKeyScript(params);      // from rando
+        byte[] outScript = recvAddr.getPubKeyScript(params);  // to me
 
         System.out.println("        One SATOSHI");
 
-        BRCoreTransaction tx = new BRCoreTransaction(wm.getParams());
+        BRCoreTransaction tx = new BRCoreTransaction(params);
         tx.addInput(
-                new BRCoreTransactionInput(wm.getParams(), inHash, 0, 1, inScript, new byte[]{}, 4294967295L));
+                new BRCoreTransactionInput(params, inHash, 0, 1, inScript, new byte[]{}, 4294967295L));
         tx.addOutput(
-                new BRCoreTransactionOutput(wm.getParams(), SATOSHIS, outScript));
+                new BRCoreTransactionOutput(params, SATOSHIS, outScript));
 
 //        wm.signAndPublishTransaction(tx, phrase);
         wm.getWallet().signTransaction(tx, phrase);

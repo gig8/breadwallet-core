@@ -52,13 +52,13 @@ getJNIReference (
 //
 extern void
 transactionInputCopy(JNIEnv *env,
-                     jobject objParams,
+                     const BRChainParams *params,
                      BRTxInput *target,
                      const BRTxInput *source);
 
 extern void
 transactionOutputCopy (JNIEnv *env,
-                       jobject objParams,
+                       const BRChainParams *params,
                        BRTxOutput *target,
                        const BRTxOutput *source);
 

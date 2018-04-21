@@ -64,13 +64,14 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreAddress_createCoreAddres
          jobject objParams,
          jbyteArray scriptByteArray) {
     BRAddress *address = (BRAddress *) calloc (1, sizeof (BRAddress));
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     size_t scriptLen = (size_t) (*env)->GetArrayLength (env, scriptByteArray);
     const uint8_t *script = (const uint8_t *) (*env)->GetByteArrayElements (env, scriptByteArray, 0);
 
     // TODO: Error handling
     BRAddressFromScriptPubKey(
-            objParams,
+            params,
             address->s, sizeof(address->s), script, scriptLen);
 
     return (jlong) address;
@@ -86,13 +87,14 @@ JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCoreAddress_createCoreAddres
          jobject objParams,
          jbyteArray scriptByteArray) {
     BRAddress *address = (BRAddress *) calloc(1, sizeof(BRAddress));
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     size_t scriptLen = (size_t) (*env)->GetArrayLength(env, scriptByteArray);
     const uint8_t *script = (const uint8_t *) (*env)->GetByteArrayElements(env, scriptByteArray, 0);
 
     // TODO: Error handling
     BRAddressFromScriptSig(
-            objParams,
+            params,
             address->s, sizeof(address->s), script, scriptLen);
 
     return (jlong) address;
@@ -120,8 +122,9 @@ Java_com_breadwallet_core_BRCoreAddress_isValid
         (JNIEnv *env, jobject thisObject,
          jobject objParams) {
     BRAddress *address = (BRAddress *) getJNIReference(env, thisObject);
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
     return (jboolean) (BRAddressIsValid(
-            objParams,
+            params,
             address->s)
                        ? JNI_TRUE
                        : JNI_FALSE);
@@ -137,13 +140,14 @@ Java_com_breadwallet_core_BRCoreAddress_getPubKeyScript
         (JNIEnv *env, jobject thisObject,
          jobject objParams) {
     BRAddress *address = (BRAddress *) getJNIReference(env, thisObject);
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     size_t pubKeyLen = BRAddressScriptPubKey(
-            objParams,
+            params,
             NULL, 0, address->s);
     uint8_t pubKey[pubKeyLen];
     BRAddressScriptPubKey(
-            objParams,
+            params,
             pubKey, pubKeyLen, address->s);
 
     jbyteArray result = (*env)->NewByteArray (env, (jsize) pubKeyLen);

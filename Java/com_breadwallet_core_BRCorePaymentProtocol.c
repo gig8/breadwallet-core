@@ -102,6 +102,7 @@ Java_com_breadwallet_core_BRCorePaymentProtocolRequest_getOutputs
 
     for (int i = 0; i < outputCount; i++) {
         BRTxOutput *output = (BRTxOutput *) calloc (1, sizeof (BRTxOutput));
+
         transactionOutputCopy (
                 env,
                 request->params,
@@ -316,10 +317,11 @@ Java_com_breadwallet_core_BRCorePaymentProtocolRequest_createPaymentProtocolRequ
         (JNIEnv *env, jclass thisClass,
          jobject objParams,
          jbyteArray dataByteArray) {
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
 
     size_t dataLen = (*env)->GetArrayLength(env, dataByteArray);
     const uint8_t *data = (uint8_t *) (*env)->GetByteArrayElements(env, dataByteArray, 0);
-    return (jlong) BRPaymentProtocolRequestParse(objParams, data, dataLen);
+    return (jlong) BRPaymentProtocolRequestParse(params, data, dataLen);
 }
 
 /*
@@ -467,9 +469,10 @@ JNIEXPORT jlong JNICALL
 Java_com_breadwallet_core_BRCorePaymentProtocolPayment_createPaymentProtocolPayment
         (JNIEnv *env, jclass thisClass,
          jobject objParams, jbyteArray dataByteArray)  {
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
     size_t dataLen = (*env)->GetArrayLength(env, dataByteArray);
     const uint8_t *data = (uint8_t *) (*env)->GetByteArrayElements(env, dataByteArray, 0);
-    return (jlong) BRPaymentProtocolPaymentParse (objParams, data, dataLen);
+    return (jlong) BRPaymentProtocolPaymentParse (params, data, dataLen);
 }
 /*
  * Class:     com_breadwallet_core_BRCorePaymentProtocolPayment
@@ -632,9 +635,10 @@ Java_com_breadwallet_core_BRCorePaymentProtocolACK_getMerchantMemo
 JNIEXPORT jlong JNICALL Java_com_breadwallet_core_BRCorePaymentProtocolACK_createPaymentProtocolACK
         (JNIEnv *env, jclass thisClass,
          jobject objParams, jbyteArray dataByteArray) {
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
     size_t dataLen = (*env)->GetArrayLength(env, dataByteArray);
     const uint8_t *data = (uint8_t *) (*env)->GetByteArrayElements(env, dataByteArray, 0);
-    return (jlong) BRPaymentProtocolACKParse (objParams, data, dataLen);
+    return (jlong) BRPaymentProtocolACKParse (params, data, dataLen);
 }
 
 /*

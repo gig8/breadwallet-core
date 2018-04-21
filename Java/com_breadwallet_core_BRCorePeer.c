@@ -284,6 +284,7 @@ JNIEXPORT jlong
 JNICALL Java_com_breadwallet_core_BRCorePeer_createJniCoreParams
         (JNIEnv *env, jclass thisClass,
          jobject objParams) {
-    BRPeer *result = BRPeerNew(objParams);
+    BRChainParams *params = (BRChainParams *) getJNIReference(env, objParams);
+    BRPeer *result = BRPeerNew(params);
     return (jlong) result;
 }
