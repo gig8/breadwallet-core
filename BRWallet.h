@@ -48,7 +48,8 @@ typedef struct {
 inline static size_t BRUTXOHash(const void *utxo)
 {
     // (hash xor n)*FNV_PRIME
-    return (size_t)((((const BRUTXO *)utxo)->hash.u32[0] ^ ((const BRUTXO *)utxo)->n)*0x01000193);
+    size_t result = (size_t)((((const BRUTXO *)utxo)->hash.u32[0] ^ ((const BRUTXO *)utxo)->n)*0x01000193);
+    return result;
 }
 
 inline static int BRUTXOEq(const void *utxo, const void *otherUtxo)

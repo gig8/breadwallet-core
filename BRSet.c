@@ -196,6 +196,7 @@ void *BRSetGet(const BRSet *set, const void *item)
     assert(item != NULL);
     
     size_t size = set->size;
+
     size_t i = set->hash(item) % size;
     void *t = set->table[i];
 
@@ -203,7 +204,7 @@ void *BRSetGet(const BRSet *set, const void *item)
         i = (i + 1) % size;
         t = set->table[i];
     }
-    
+
     return t;
 }
 

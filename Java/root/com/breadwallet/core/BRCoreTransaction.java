@@ -29,7 +29,7 @@ import java.util.Arrays;
 /**
  *
  */
-public class BRCoreTransaction extends BRCoreJniReference {
+public class  BRCoreTransaction extends BRCoreJniReference {
 
     protected static final boolean JNI_COPIES_TRANSACTIONS = true;
 

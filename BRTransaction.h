@@ -85,7 +85,6 @@ void BRTxOutputSetAddress(const BRChainParams *params, BRTxOutput *output, const
 void BRTxOutputSetScript(const BRChainParams *params, BRTxOutput *output, const uint8_t *script, size_t scriptLen);
 
 typedef struct {
-    const BRChainParams *params;
     UInt256 txHash;
     uint32_t version;
     BRTxInput *inputs;
@@ -95,6 +94,7 @@ typedef struct {
     uint32_t lockTime;
     uint32_t blockHeight;
     uint32_t timestamp; // time interval since unix epoch - used in motacoin
+    const BRChainParams *params;
 } BRTransaction;
 
 // returns a newly allocated empty transaction that must be freed by calling BRTransactionFree()

@@ -44,6 +44,10 @@ static jlong getJNIReferenceAddress (
         jobject thisObject)
 {
     jfieldID coreBRKeyAddressField = getJNIReferenceField(env, thisObject);
+    if (coreBRKeyAddressField == NULL) {
+        // this is bad
+        printf("null coreBRKeyAddressField");
+    }
     assert (NULL != coreBRKeyAddressField);
 
     return (*env)->GetLongField (env, thisObject, coreBRKeyAddressField);

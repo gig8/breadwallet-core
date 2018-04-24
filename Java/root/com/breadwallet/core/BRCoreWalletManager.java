@@ -80,7 +80,8 @@ public class BRCoreWalletManager implements
      */
 
     protected BRCoreWallet createWallet () {
-        return new BRCoreWallet (loadTransactions(), masterPubKey,
+        BRCoreTransaction[] transactions = loadTransactions();
+        return new BRCoreWallet (transactions, masterPubKey,
                 chainParams,
                 createWalletListener());
     }

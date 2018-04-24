@@ -169,7 +169,6 @@ inline static int _BRBlockHeightEq(const void *block, const void *otherBlock)
 }
 
 struct BRPeerManagerStruct {
-    const BRChainParams *params;
     BRWallet *wallet;
     int isConnected, connectFailureCount, misbehavinCount, dnsThreadCount, maxConnectCount;
     BRPeer *peers, *downloadPeer, fixedPeer, **connectedPeers;
@@ -191,6 +190,7 @@ struct BRPeerManagerStruct {
     int (*networkIsReachable)(void *info);
     void (*threadCleanup)(void *info);
     pthread_mutex_t lock;
+    const BRChainParams *params;
 };
 
 static void _BRPeerManagerPeerMisbehavin(BRPeerManager *manager, BRPeer *peer)

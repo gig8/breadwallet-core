@@ -167,7 +167,8 @@ static void _BRWalletUpdateBalance(BRWallet *wallet)
     wallet->totalSent = 0;
     wallet->totalReceived = 0;
 
-    for (i = 0; i < array_count(wallet->transactions); i++) {
+    size_t transactionCount = array_count(wallet->transactions);
+    for (i = 0; i < transactionCount; i++) {
         tx = wallet->transactions[i];
 
         // check if any inputs are invalid or already spent
