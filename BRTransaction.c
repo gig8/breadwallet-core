@@ -40,7 +40,18 @@
 #define SIGHASH_SINGLE       0x03 // sign one of the outputs, I don't care where the other outputs go
 #define SIGHASH_ANYONECANPAY 0x80 // let other people add inputs, I don't care where the rest of the bitcoins come from
 #define SIGHASH_FORKID       0x40 // use BIP143 digest method (for b-cash/b-gold signatures)
-#define SIGHASH_TXTIME       0x20 // include txtime in transactions (for motacoin)
+//#define SIGHASH_TXTIME       0x20 // include txtime in transactions (for motacoin)
+
+#if defined(TARGET_OS_MAC)
+#include <Foundation/Foundation.h>
+#define tx_log(...) NSLog(__VA_ARGS__)
+#elif defined(__ANDROID__)
+#include <android/log.h>
+#define tx_log(...) __android_log_print(ANDROID_LOG_INFO, "bread", __VA_ARGS__)
+#else
+#include <stdio.h>
+#define tx_log(...) printf(__VA_ARGS__)
+#endif
 
 // returns a random number less than upperBound, for non-cryptographic use only
 uint32_t BRRand(uint32_t upperBound)
@@ -111,25 +122,57 @@ void BRTxInputSetSignature(const BRChainParams *params, BRTxInput *input, const 
     }
 }
 
-static size_t _BRTxInputData(const BRTxInput *input, uint8_t *data, size_t dataLen)
-{
+static size_t _BRTxInputData(const BRTxInput *input, uint8_t *data, size_t dataLen) {
+    int debug = 1;
     size_t off = 0;
-    
-    if (data && off + sizeof(UInt256) <= dataLen) memcpy(&data[off], &input->txHash, sizeof(UInt256)); // previous out
+
+    if (data && off + sizeof(UInt256) <= dataLen)
+        memcpy(&data[off], &input->txHash, sizeof(UInt256)); // previous out
     off += sizeof(UInt256);
-    if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], input->index);
+    if (debug) {
+        tx_log("prevOut\n\t%s", u256hex(input->txHash));
+    }
+
+    if (data && off + sizeof(uint32_t) <= dataLen) {
+        UInt32SetLE(&data[off], input->index);
+    }
     off += sizeof(uint32_t);
-    off += BRVarIntSet((data ? &data[off] : NULL), (off <= dataLen ? dataLen - off : 0), input->sigLen);
-    if (data && off + input->sigLen <= dataLen) memcpy(&data[off], input->signature, input->sigLen); // scriptSig
+    if (debug) {
+        tx_log("index\n\t%08" PRIx32,input->index);
+    }
+
+    off += BRVarIntSet((data ? &data[off] : NULL), (off <= dataLen ? dataLen - off : 0),
+                       input->sigLen);
+    if (debug) {
+        tx_log("sigLen\n\t%02x",input->sigLen);
+    }
+
+    if (data && off + input->sigLen <= dataLen)
+        memcpy(&data[off], input->signature, input->sigLen); // scriptSig
     off += input->sigLen;
+    if (debug) {
+        char sigHex[input->sigLen * 3 + 1];
+        for (size_t j = 0; j < input->sigLen; j++) {
+            sprintf(&sigHex[j * 3], "%02x ", input->signature[j]);
+        }
+        sigHex[input->sigLen * 3] = '\0';
+        tx_log("scriptSig\n\t%s", sigHex);
+    }
 
     if (input->amount != 0) {
         if (data && off + sizeof(uint64_t) <= dataLen) UInt64SetLE(&data[off], input->amount);
         off += sizeof(uint64_t);
+        if (debug) {
+            tx_log("amount\n\t%16" PRIx64,input->amount);
+        }
     }
 
     if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], input->sequence);
     off += sizeof(uint32_t);
+    if (debug) {
+        tx_log("sequence\n\t%08" PRIx32,input->sequence);
+    }
+
     return (! data || off <= dataLen) ? off : 0;
 }
 
@@ -171,14 +214,31 @@ static size_t _BRTransactionOutputData(const BRTransaction *tx, uint8_t *data, s
 {
     BRTxOutput *output;
     size_t i, off = 0;
+    int debug = 1;
     
     for (i = (index == SIZE_MAX ? 0 : index); i < tx->outCount && (index == SIZE_MAX || index == i); i++) {
         output = &tx->outputs[i];
         if (data && off + sizeof(uint64_t) <= dataLen) UInt64SetLE(&data[off], output->amount);
         off += sizeof(uint64_t);
+        if (debug) {
+            tx_log("amount\n\t%016" PRIx64,output->amount);
+        }
+
         off += BRVarIntSet((data ? &data[off] : NULL), (off <= dataLen ? dataLen - off : 0), output->scriptLen);
+        if (debug) {
+            tx_log("sigLen\n\t%02x",output->scriptLen);
+        }
+
         if (data && off + output->scriptLen <= dataLen) memcpy(&data[off], output->script, output->scriptLen);
         off += output->scriptLen;
+        if (debug) {
+            char sigHex[output->scriptLen * 3 + 1];
+            for (size_t j = 0; j < output->scriptLen; j++) {
+                sprintf(&sigHex[j * 3], "%02x ", output->script[j]);
+            }
+            sigHex[output->scriptLen * 3] = '\0';
+            tx_log("script\n\t%s", sigHex);
+        }
     }
     
     return (! data || off <= dataLen) ? off : 0;
@@ -199,7 +259,7 @@ static size_t _BRTransactionWitnessData(const BRTransaction *tx, uint8_t *data, 
     if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], tx->version); // tx version
     off += sizeof(uint32_t);
 
-    if (tx->params->forkId | SIGHASH_TXTIME) {
+    if (tx->params->magicNumber == 0x4a304a30) {
         if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], tx->timestamp); // nTime (for motacoin)
         off += sizeof(uint32_t);
     }
@@ -270,7 +330,7 @@ static size_t _BRTransactionData(const BRTransaction *tx, uint8_t *data, size_t 
     if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], tx->version); // tx version
     off += sizeof(uint32_t);
 
-    if (tx->params->forkId | SIGHASH_TXTIME) {
+    if (tx->params->magicNumber == 0x4a304a30) {
         if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], tx->timestamp); // nTime (for motacoin)
         off += sizeof(uint32_t);
     }
@@ -392,7 +452,7 @@ BRTransaction *BRTransactionParse(const BRChainParams *params, const uint8_t *bu
     tx->version = (off + sizeof(uint32_t) <= bufLen) ? UInt32GetLE(&buf[off]) : 0;
     off += sizeof(uint32_t);
 
-    if (params->forkId | SIGHASH_TXTIME) {
+    if (params->magicNumber == 0x4a304a30) {
         tx->timestamp = (off + sizeof(uint32_t) <= bufLen) ? UInt32GetLE(&buf[off]) : 0;
         off += sizeof(uint32_t);
     }
@@ -530,7 +590,7 @@ size_t BRTransactionSize(const BRTransaction *tx)
     // 8 for nVersion and nLockTime
     size = (tx) ? 8 + BRVarIntSize(tx->inCount) + BRVarIntSize(tx->outCount) : 0;
 
-    if (tx->params->forkId & SIGHASH_TXTIME) {
+    if (tx->params->magicNumber == 0x4a304a30) {
         size += 4;  // for timestamp (nTime)
     }
 
@@ -574,6 +634,7 @@ int BRTransactionIsSigned(const BRTransaction *tx)
 // returns true if tx is signed
 int BRTransactionSign(BRTransaction *tx, BRKey keys[], size_t keysCount)
 {
+    int debug = 1;
     BRAddress addrs[keysCount], address;
     size_t i, j;
     
@@ -607,10 +668,40 @@ int BRTransactionSign(BRTransaction *tx, BRKey keys[], size_t keysCount)
             size_t dataLen = _BRTransactionData(tx, data, sizeof(data), i, tx->params->forkId | SIGHASH_ALL);
             
             BRSHA256_2(&md, data, dataLen);
+            if (debug) {
+                tx_log("pay-to-pubkey-hash");
+                tx_log("md\n\t%s", u256hex(md));
+            }
+
             sigLen = BRKeySign(&keys[j], sig, sizeof(sig) - 1, md);
             sig[sigLen++] = tx->params->forkId | SIGHASH_ALL;
             scriptLen = BRScriptPushData(script, sizeof(script), sig, sigLen);
             scriptLen += BRScriptPushData(&script[scriptLen], sizeof(script) - scriptLen, pubKey, pkLen);
+
+            char data_tmp[dataLen*2 + 1];
+            for (int x = 0; x < dataLen; x++)  {
+                sprintf(&data_tmp[x*2],"%02x", data[x]);
+            }
+            tx_log("data_tmp\n\t%s", data_tmp);
+
+            char sig_tmp[73*2 + 1];
+            for (int x = 0; x < sigLen; x++)  { // could be 70, or maybe 71
+                sprintf(&sig_tmp[x*2],"%02x", sig[x]);
+            }
+            tx_log("sig_tmp\n\t%s", sig_tmp);
+
+            char pubKey_tmp[32*2 + 1];
+            for (int y = 0; y < pkLen; y++)  {
+                sprintf(&pubKey_tmp[y*2],"%02x", pubKey[y]);
+            }
+            tx_log("pubKey_tmp\n\t%s", pubKey_tmp);
+
+            char script_tmp[107*2 + 1];
+            for (int z = 0; z < 107; z++)  {
+                sprintf(&script_tmp[z*2],"%02x", script[z]);
+            }
+            tx_log("script_tmp\n\t%s", script_tmp);
+
             BRTxInputSetSignature(tx->params,
                                   input, script, scriptLen);
         }
@@ -619,9 +710,39 @@ int BRTransactionSign(BRTransaction *tx, BRKey keys[], size_t keysCount)
             size_t dataLen = _BRTransactionData(tx, data, sizeof(data), i, tx->params->forkId | SIGHASH_ALL);
             
             BRSHA256_2(&md, data, dataLen);
+            if (debug) {
+                tx_log("pay-to-pubkey");
+                tx_log("md\n\t%s", u256hex(md));
+            }
+
             sigLen = BRKeySign(&keys[j], sig, sizeof(sig) - 1, md);
             sig[sigLen++] = tx->params->forkId | SIGHASH_ALL;
             scriptLen = BRScriptPushData(script, sizeof(script), sig, sigLen);
+
+            char data_tmp[dataLen*2 + 1];
+            for (int x = 0; x < dataLen; x++)  {
+                sprintf(&data_tmp[x*2],"%02x", data[x]);
+            }
+            tx_log("data_tmp\n\t%s", data_tmp);
+
+            char sig_tmp[73*2 + 1];
+            for (int x = 0; x < sigLen; x++)  { // could be 70, or maybe 71
+                sprintf(&sig_tmp[x*2],"%02x", sig[x]);
+            }
+            tx_log("sig_tmp\n\t%s", sig_tmp);
+
+            char pubKey_tmp[32*2 + 1];
+            for (int y = 0; y < pkLen; y++)  {
+                sprintf(&pubKey_tmp[y*2],"%02x", pubKey[y]);
+            }
+            tx_log("pubKey_tmp\n\t%s", pubKey_tmp);
+
+            char script_tmp[107*2 + 1];
+            for (int z = 0; z < 107; z++)  {
+                sprintf(&script_tmp[z*2],"%02x", script[z]);
+            }
+            tx_log("script_tmp\n\t%s", script_tmp);
+
             BRTxInputSetSignature(tx->params,
                                   input, script, scriptLen);
         }

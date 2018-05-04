@@ -317,7 +317,7 @@ size_t BRKeySign(const BRKey *key, void *sig, size_t sigLen, UInt256 md)
         if (! secp256k1_ecdsa_signature_serialize_der(_ctx, sig, &sigLen, &s)) sigLen = 0;
     }
     else sigLen = 0;
-    
+
     return sigLen;
 }
 

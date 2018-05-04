@@ -1865,8 +1865,10 @@ void BRPeerManagerPublishTx(BRPeerManager *manager, BRTransaction *tx, void *inf
     
     if (tx) {
         size_t i, count = 0;
-        
-        tx->timestamp = (uint32_t)time(NULL); // set timestamp to publish time
+
+        if (tx->timestamp == 0) {   // for motacoin this is set when the tx is created
+            tx->timestamp = (uint32_t) time(NULL); // set timestamp to publish time
+        }
         _BRPeerManagerAddTxToPublishList(manager, tx, info, callback);
 
         for (i = array_count(manager->connectedPeers); i > 0; i--) {

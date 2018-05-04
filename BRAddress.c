@@ -337,7 +337,12 @@ size_t BRAddressScriptPubKey(const BRChainParams *params, uint8_t *script, size_
                 script[23] = OP_EQUALVERIFY;
                 script[24] = OP_CHECKSIG;
             }
-            
+
+            char data_tmp[20 * 3 + 1];
+            for (int y = 0; y < 20; y++)  { // could be 70, or maybe 71
+                sprintf(&data_tmp[y*3],"%02x ", data[y+1]);
+            }
+
             r = (! script || 25 <= scriptLen) ? 25 : 0;
         }
         else if (data[0] == params->scriptAddress) {
@@ -346,6 +351,11 @@ size_t BRAddressScriptPubKey(const BRChainParams *params, uint8_t *script, size_
                 script[1] = 20;
                 memcpy(&script[2], &data[1], 20);
                 script[22] = OP_EQUAL;
+            }
+
+            char data_tmp[20 * 3 + 1];
+            for (int y = 0; y < 20; y++)  { // could be 70, or maybe 71
+                sprintf(&data_tmp[y*3],"%02x ", data[y+1]);
             }
             
             r = (! script || 23 <= scriptLen) ? 23 : 0;

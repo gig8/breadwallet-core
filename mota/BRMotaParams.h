@@ -36,11 +36,11 @@
 #define MOTA_SCRIPT_ADDRESS_TEST 196
 
 static const char *BRMotaDNSSeeds[] = {
-    "explorer.motacoin.vip", NULL
+    "mota2.gig8.com", NULL
 };
 
 static const char *BRMotaTestNetDNSSeeds[] = {
-    "explorer.motacoin.vip", NULL
+    "mota2.gig8.com", NULL
 };
 /*
     algorithm: X13
@@ -113,7 +113,7 @@ static const BRChainParams BRMotaParams = {
     BRMotaVerifyDifficulty,
     BRMotaCheckpoints,
     sizeof(BRMotaCheckpoints)/sizeof(*BRMotaCheckpoints),
-    0x20, // forkId
+    0x00, // forkId
     ALGO_X13,   // algoId
     70013,
     60013,
@@ -135,7 +135,7 @@ static const BRChainParams BRMotaTestNetParams = {
     BRMotaTestNetVerifyDifficulty,
     BRMotaTestNetCheckpoints,
     sizeof(BRMotaTestNetCheckpoints)/sizeof(*BRMotaTestNetCheckpoints),
-    0x20, // forkId
+    0x00, // forkId
     ALGO_X13,   // algoId
     70013,
     60013,
