@@ -28,6 +28,7 @@
 #include "BRSet.h"
 #include "BRArray.h"
 #include "BRCrypto.h"
+#include "mota/BRX13Crypto.h"
 #include "BRInt.h"
 #include "BRChainParams.h"
 #include <stdlib.h>
@@ -492,8 +493,16 @@ static int _BRPeerAcceptHeadersMessage(BRPeer *peer, const uint8_t *msg, size_t 
             time_t now = time(NULL);
             UInt256 locators[2];
 
-            BRSHA256_2(&locators[0], &msg[off + blockSeparation*(count - 1)], ctx->params->blockHeaderSize);
-            BRSHA256_2(&locators[1], &msg[off], ctx->params->blockHeaderSize);
+            // TODO: TU This needs to change to the correct hash function!
+
+
+            if (ctx->params->algoId == ALGO_X13) {
+                BRX13(&locators[0], &msg[off + blockSeparation*(count - 1)], ctx->params->blockHeaderSize);
+                BRX13(&locators[1], &msg[off], ctx->params->blockHeaderSize);
+            } else {    // default
+                BRSHA256_2(&locators[0], &msg[off + blockSeparation*(count - 1)], ctx->params->blockHeaderSize);
+                BRSHA256_2(&locators[1], &msg[off], ctx->params->blockHeaderSize);
+            }
 
             peer_log(peer, "sendGet locators: %s %s",
                      u256hex(UInt256Reverse(locators[0])),
@@ -507,8 +516,13 @@ static int _BRPeerAcceptHeadersMessage(BRPeer *peer, const uint8_t *msg, size_t 
                 while (timestamp > 0 && timestamp + 7*24*60*60 + BLOCK_MAX_TIME_DRIFT < ctx->earliestKeyTime) {
                     timestamp = (++last < count) ? UInt32GetLE(&msg[off + blockSeparation*last + 68]) : 0;
                 }
-                
-                BRSHA256_2(&locators[0], &msg[off + blockSeparation*(last - 1)], ctx->params->blockHeaderSize);
+
+                if (ctx->params->algoId == ALGO_X13) {
+                    BRX13(&locators[0], &msg[off + blockSeparation*(last - 1)], ctx->params->blockHeaderSize);
+                } else {    // default
+                    BRSHA256_2(&locators[0], &msg[off + blockSeparation*(last - 1)], ctx->params->blockHeaderSize);
+                }
+
                 BRPeerSendGetblocks(peer, locators, 2, UINT256_ZERO);
             }
 //            else BRPeerSendGetheaders(peer, locators, 2, UINT256_ZERO);
