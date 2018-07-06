@@ -411,6 +411,7 @@ static int _BRPeerAcceptInvMessage(BRPeer *peer, const uint8_t *msg, size_t msgL
 
 static int _BRPeerAcceptTxMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen)
 {
+    peer_log(peer, "_BRPeerAcceptTxMessage!!!");
     BRPeerContext *ctx = (BRPeerContext *)peer;
     BRTransaction *tx = BRTransactionParse(ctx->params, msg, msgLen);
     UInt256 txHash;
@@ -427,7 +428,7 @@ static int _BRPeerAcceptTxMessage(BRPeer *peer, const uint8_t *msg, size_t msgLe
     }
     else {
         txHash = tx->txHash;
-        peer_log(peer, "got tx: %s", u256hex(txHash));
+        peer_log(peer, "got tx: %s", u256hex(UInt256Reverse(txHash)));
 
         if (ctx->relayedTx) {
             ctx->relayedTx(ctx->info, tx);
@@ -901,7 +902,8 @@ static int _BRPeerAcceptMessage(BRPeer *peer, const uint8_t *msg, size_t msgLen,
 {
     BRPeerContext *ctx = (BRPeerContext *)peer;
     int r = 1;
-    
+
+    peer_log(peer, "type = %s", type);
     if (ctx->currentBlock && strncmp(MSG_TX, type, 12) != 0) { // if we receive a non-tx message, merkleblock is done
         peer_log(peer, "incomplete merkleblock %s, expected %zu more tx, got %s", u256hex(ctx->currentBlock->blockHash),
                  array_count(ctx->currentBlockTxHashes), type);
@@ -1063,7 +1065,9 @@ static void *_peerThreadRoutine(void *arg)
                 uint32_t msgLen = UInt32GetLE(&header[16]);
                 uint32_t checksum = UInt32GetLE(&header[20]);
                 UInt256 hash;
-                
+
+                peer_log(peer,"**** type=%s ****\n", type);
+
                 if (msgLen > MAX_MSG_LENGTH) { // check message length
                     peer_log(peer, "error reading %s, message length %"PRIu32" is too long", type, msgLen);
                     error = EPROTO;

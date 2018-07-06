@@ -936,7 +936,7 @@ static void _peerRelayedTx(void *info, BRTransaction *tx)
     size_t relayCount = 0;
     
     pthread_mutex_lock(&manager->lock);
-    peer_log(peer, "relayed tx: %s", u256hex(tx->txHash));
+    peer_log(peer, "relayed tx: %s", u256hex(UInt256Reverse(tx->txHash)));
     
     for (size_t i = array_count(manager->publishedTx); i > 0; i--) { // see if tx is in list of published tx
         if (UInt256Eq(manager->publishedTxHashes[i - 1], tx->txHash)) {
@@ -1197,7 +1197,7 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block)
         
         // false positive rate sanity check
         if (BRPeerConnectStatus(peer) == BRPeerStatusConnected &&
-            manager->fpRate > BLOOM_DEFAULT_FALSEPOSITIVE_RATE*10.0) {
+            manager->fpRate > BLOOM_DEFAULT_FALSEPOSITIVE_RATE*20.0) {
             peer_log(peer, "bloom filter false positive rate %f too high after %"PRIu32" blocks, disconnecting...",
                      manager->fpRate, manager->lastBlock->height + 1 - manager->filterUpdateHeight);
             BRPeerDisconnect(peer);
