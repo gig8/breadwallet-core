@@ -30,6 +30,17 @@
 #include <stddef.h>
 #include <inttypes.h>
 
+#if defined(TARGET_OS_MAC)
+#include <Foundation/Foundation.h>
+#define _key_log(...) NSLog(__VA_ARGS__)
+#elif defined(__ANDROID__)
+#include <android/log.h>
+#define _key_log(...) __android_log_print(ANDROID_LOG_INFO, "bread-wallet", __VA_ARGS__)
+#else
+#include <stdio.h>
+#define _key_log(...) printf(__VA_ARGS__)
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

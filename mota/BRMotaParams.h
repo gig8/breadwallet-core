@@ -36,11 +36,11 @@
 #define MOTA_SCRIPT_ADDRESS_TEST 196
 
 static const char *BRMotaDNSSeeds[] = {
-    "mota2.gig8.com", NULL
+    "mota3.gig8.com", NULL
 };
 
 static const char *BRMotaTestNetDNSSeeds[] = {
-    "mota2.gig8.com", NULL
+    "mota3.gig8.com", NULL
 };
 /*
     algorithm: X13

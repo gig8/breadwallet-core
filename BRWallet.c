@@ -251,6 +251,7 @@ static void _BRWalletUpdateBalance(BRWallet *wallet)
 BRWallet *BRWalletNew(BRTransaction *transactions[], size_t txCount, BRMasterPubKey mpk,
                       const BRChainParams *params)
 {
+//    _wallet_log("BRWalletNew\n");
     BRWallet *wallet = NULL;
     BRTransaction *tx;
 
@@ -348,6 +349,7 @@ size_t BRWalletUnusedAddrs(BRWallet *wallet, BRAddress addrs[], uint32_t gapLimi
         
         if (! BRKeySetPubKey(&key, pubKey, len)) break;
         if (! BRKeyAddress(&key, wallet->params, address.s, sizeof(address)) || BRAddressEq(&address, &BR_ADDRESS_NONE)) break;
+
         array_add(addrChain, address);
         count++;
         if (BRSetContains(wallet->usedAddrs, &address)) i = count;

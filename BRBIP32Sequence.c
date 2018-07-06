@@ -26,6 +26,7 @@
 #include "BRCrypto.h"
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 #define BIP32_SEED_KEY "Bitcoin seed"
 #define BIP32_XPRV     "\x04\x88\xAD\xE4"
@@ -50,6 +51,7 @@
 //
 static void _CKDpriv(UInt256 *k, UInt256 *c, uint32_t i)
 {
+//    _key_log("_CKDpriv with i=%d",i);
     uint8_t buf[sizeof(BRECPoint) + sizeof(i)];
     UInt512 I;
     
@@ -86,6 +88,7 @@ static void _CKDpriv(UInt256 *k, UInt256 *c, uint32_t i)
 //
 static void _CKDpub(BRECPoint *K, UInt256 *c, uint32_t i)
 {
+//    _key_log("_CKDpub with i=%d",i);
     uint8_t buf[sizeof(*K) + sizeof(i)];
     UInt512 I;
 
@@ -149,7 +152,16 @@ size_t BRBIP32PubKey(uint8_t *pubKey, size_t pubKeyLen, BRMasterPubKey mpk, uint
         _CKDpub((BRECPoint *)pubKey, &chainCode, index); // index'th key in chain
         var_clean(&chainCode);
     }
-    
+
+//    if (pubKeyLen != 0) {
+//        char outHex[pubKeyLen * 2 + 1];
+//        outHex[pubKeyLen * 2] = '/0';
+//        for (size_t j = 0; j < pubKeyLen; j++) {
+//            sprintf(&outHex[j * 2], "%02x", pubKey[j]);
+//        }
+//        _key_log("BRBIP32PubKey|%d|%d|%s\n", chain, index, outHex);
+//    }
+
     return (! pubKey || sizeof(BRECPoint) <= pubKeyLen) ? sizeof(BRECPoint) : 0;
 }
 

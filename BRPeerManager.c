@@ -296,13 +296,23 @@ static void _BRPeerManagerLoadBloomFilter(BRPeerManager *manager, BRPeer *peer)
     txCount = BRWalletTxUnconfirmedBefore(manager->wallet, transactions, txCount, blockHeight);
     filter = BRBloomFilterNew(manager->fpRate, addrsCount + utxosCount + txCount + 100, (uint32_t)BRPeerHash(peer),
                               BLOOM_UPDATE_ALL); // BUG: XXX txCount not the same as number of spent wallet outputs
-    
+
+    _key_log("addrsCount %d, utxosCount %d, txCount %d", addrsCount, utxosCount, txCount);
+
     for (size_t i = 0; i < addrsCount; i++) { // add addresses to watch for tx receiveing money to the wallet
         UInt160 hash = UINT160_ZERO;
-        
+
+//        char outHex[75 * 2 + 1];
+//        outHex[75 * 2] = '/0';
+//        for (size_t j = 0; j < 75; j++) {
+//            sprintf(&outHex[j * 2], "%02x", addrs[i].s[j]);
+//        }
+//        _key_log("Bloom|%d|%s\n", i, outHex);
+
         BRAddressHash160(&hash, addrs[i].s);
-        
+
         if (! UInt160IsZero(hash) && ! BRBloomFilterContainsData(filter, hash.u8, sizeof(hash))) {
+//            _key_log("inserting\n");
             BRBloomFilterInsertData(filter, hash.u8, sizeof(hash));
         }
     }
