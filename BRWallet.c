@@ -27,6 +27,7 @@
 #include "BRAddress.h"
 #include "BRArray.h"
 #include "BRChainParams.h"
+#include "BRTransaction.h"
 #include <stdlib.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -726,6 +727,8 @@ int BRWalletContainsTransaction(BRWallet *wallet, const BRTransaction *tx)
 // adds a transaction to the wallet, or returns false if it isn't associated with the wallet
 int BRWalletRegisterTransaction(BRWallet *wallet, BRTransaction *tx)
 {
+//    _key_log("BRWalletRegisterTransaction\n");
+
     int wasAdded = 0, r = 1;
     
     assert(wallet != NULL);
@@ -740,6 +743,14 @@ int BRWalletRegisterTransaction(BRWallet *wallet, BRTransaction *tx)
                 // TODO: handle tx replacement with input sequence numbers
                 //       (for now, replacements appear invalid until confirmation)
                 BRSetAdd(wallet->allTx, tx);
+                BRTransaction *temptx;
+                temptx = BRSetGet(wallet->allTx, tx);
+//                if (!temptx) {
+//                    _key_log("unable to store and retreive tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
+//                } else {
+//                    _key_log("successfully rstore and retreived tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
+//                }
+
                 _BRWalletInsertTx(wallet, tx);
                 _BRWalletUpdateBalance(wallet);
                 wasAdded = 1;
@@ -944,7 +955,10 @@ int BRWalletTransactionIsVerified(BRWallet *wallet, const BRTransaction *tx)
 void BRWalletUpdateTransactions(BRWallet *wallet, const UInt256 txHashes[], size_t txCount, uint32_t blockHeight,
                                 uint32_t timestamp)
 {
+//    _key_log("BRWalletUpdateTransactions\n");
+
     BRTransaction *tx;
+
     UInt256 hashes[txCount];
     int needsUpdate = 0;
     size_t i, j, k;
@@ -956,7 +970,18 @@ void BRWalletUpdateTransactions(BRWallet *wallet, const UInt256 txHashes[], size
     
     for (i = 0, j = 0; txHashes && i < txCount; i++) {
         tx = BRSetGet(wallet->allTx, &txHashes[i]);
-        if (! tx || (tx->blockHeight == blockHeight && tx->timestamp == timestamp)) continue;
+        if (! tx || (tx->blockHeight == blockHeight && tx->timestamp == timestamp)) {
+            if (!tx) {
+                // TU: Happens if tx has not yet been received (e.g., paper key restore), so we'll have to loop back on it
+                _key_log("unable to retreive txHash[%d] at %d from allTx %s\n", i, blockHeight, u256hex(UInt256Reverse(txHashes[i])));
+
+                // TU: Cache the data and reapply when the tx is received
+
+            }
+            continue;
+        }
+        _key_log("successfully retreived txHash[%d] at %d from allTx %s\n", i, blockHeight, u256hex(UInt256Reverse(txHashes[i])));
+
         tx->timestamp = timestamp;
         tx->blockHeight = blockHeight;
         

@@ -618,7 +618,7 @@ static void _BRPeerManagerLoadMempools(BRPeerManager *manager)
         info->peer = peer;
         info->manager = manager;
         
-        if (peer != manager->downloadPeer || manager->fpRate > BLOOM_REDUCED_FALSEPOSITIVE_RATE*5.0) {
+        if (peer != manager->downloadPeer || manager->fpRate > BLOOM_REDUCED_FALSEPOSITIVE_RATE*25.0) {
             _BRPeerManagerLoadBloomFilter(manager, peer);
             _BRPeerManagerPublishPendingTx(manager, peer);
             BRPeerSendPing(peer, info, _loadBloomFilterDone); // load mempool after updating bloomfilter
@@ -957,6 +957,18 @@ static void _peerRelayedTx(void *info, BRTransaction *tx)
     if (manager->syncStartHeight == 0 || BRWalletContainsTransaction(manager->wallet, tx)) {
         isWalletTx = BRWalletRegisterTransaction(manager->wallet, tx);
         if (isWalletTx) tx = BRWalletTransactionForHash(manager->wallet, tx->txHash);
+
+        // TU: Check lastblock for stats in case tx arrives after block
+        size_t txCount = BRMerkleBlockTxHashes(manager->lastBlock, NULL, 0);
+        UInt256 _txHashes[(sizeof(UInt256)*txCount <= 0x1000) ? txCount : 0],
+                *txHashes = (sizeof(UInt256)*txCount <= 0x1000) ? _txHashes : malloc(txCount*sizeof(*txHashes));
+        assert(txHashes != NULL);
+        txCount = BRMerkleBlockTxHashes(manager->lastBlock, txHashes, txCount);
+        BRWalletUpdateTransactions(manager->wallet,
+                                   txHashes,
+                                   txCount,
+                                   manager->lastBlock->height,
+                                   manager->lastBlock->timestamp);
     }
     else {
         BRTransactionFree(tx);
@@ -1197,13 +1209,13 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block)
         
         // false positive rate sanity check
         if (BRPeerConnectStatus(peer) == BRPeerStatusConnected &&
-            manager->fpRate > BLOOM_DEFAULT_FALSEPOSITIVE_RATE*20.0) {
+            manager->fpRate > BLOOM_DEFAULT_FALSEPOSITIVE_RATE*25.0) {
             peer_log(peer, "bloom filter false positive rate %f too high after %"PRIu32" blocks, disconnecting...",
                      manager->fpRate, manager->lastBlock->height + 1 - manager->filterUpdateHeight);
             BRPeerDisconnect(peer);
         }
         else if (manager->lastBlock->height + 500 < BRPeerLastBlock(peer) &&
-                 manager->fpRate > BLOOM_REDUCED_FALSEPOSITIVE_RATE*10.0) {
+                 manager->fpRate > BLOOM_REDUCED_FALSEPOSITIVE_RATE*50.0) {
             _BRPeerManagerUpdateFilter(manager); // rebuild bloom filter when it starts to degrade
         }
     }
@@ -1260,6 +1272,8 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block)
         
         BRSetAdd(manager->blocks, block);
         manager->lastBlock = block;
+        // TU: If the tx has not been registered yet from a tx message, this update will fail
+        // we might have to wait, or actually re-request it...
         if (txCount > 0) BRWalletUpdateTransactions(manager->wallet, txHashes, txCount, block->height, txTime);
         if (manager->downloadPeer) BRPeerSetCurrentBlockHeight(manager->downloadPeer, block->height);
             
