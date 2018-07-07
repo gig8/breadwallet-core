@@ -116,7 +116,7 @@ static const BRChainParams BRMotaParams = {
     0x00, // forkId
     ALGO_X13,   // algoId
     70013,
-    61013,
+    60013,
     0x1e0fffff, // bnProofOfWorkLimit(~uint256(0) >> 20);
     0x1e0fffff, // may fail when we go to POS - bnProofOfStakeLimit(~uint256(0) >> 24);
     80, // blockHeaderSize
