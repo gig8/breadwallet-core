@@ -28,6 +28,7 @@
 #include "BRInt.h"
 #include <inttypes.h>
 #include <assert.h>
+#include <stdio.h>
 
 #define VAR_INT16_HEADER  0xfd
 #define VAR_INT32_HEADER  0xfe
