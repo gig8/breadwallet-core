@@ -10,19 +10,19 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include "crypto/sph_blake.h"
-#include "crypto/sph_bmw.h"
-#include "crypto/sph_groestl.h"
-#include "crypto/sph_jh.h"
-#include "crypto/sph_keccak.h"
-#include "crypto/sph_skein.h"
-#include "crypto/sph_luffa.h"
-#include "crypto/sph_cubehash.h"
-#include "crypto/sph_shavite.h"
-#include "crypto/sph_simd.h"
-#include "crypto/sph_echo.h"
-#include "crypto/sph_hamsi.h"
-#include "crypto/sph_fugue.h"
+#include "../crypto/sph_blake.h"
+#include "../crypto/sph_bmw.h"
+#include "../crypto/sph_groestl.h"
+#include "../crypto/sph_jh.h"
+#include "../crypto/sph_keccak.h"
+#include "../crypto/sph_skein.h"
+#include "../crypto/sph_luffa.h"
+#include "../crypto/sph_cubehash.h"
+#include "../crypto/sph_shavite.h"
+#include "../crypto/sph_simd.h"
+#include "../crypto/sph_echo.h"
+#include "../crypto/sph_hamsi.h"
+#include "../crypto/sph_fugue.h"
 
 #ifdef __cplusplus
 extern "C" {

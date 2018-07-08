@@ -2,7 +2,7 @@
 // Created by Tim Uy on 4/14/18.
 //
 
-#include "mota/BRX13Crypto.h"
+#include "BRX13Crypto.h"
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>

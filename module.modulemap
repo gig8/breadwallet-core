@@ -22,5 +22,27 @@ module BRCore [system] [extern_c] {
     header "BRChainParams.h"
     header "bcash/BRBCashParams.h"
     header "bcash/BRBCashAddr.h"
+    header "crypto/sph_blake.h"
+    header "crypto/sph_bmw.h"
+    header "crypto/sph_groestl.h"
+    header "crypto/sph_jh.h"
+    header "crypto/sph_keccak.h"
+    header "crypto/sph_skein.h"
+    header "crypto/sph_luffa.h"
+    header "crypto/sph_cubehash.h"
+    header "crypto/sph_shavite.h"
+    header "crypto/sph_simd.h"
+    header "crypto/sph_echo.h"
+    header "crypto/sph_hamsi.h"
+    header "crypto/sph_fugue.h"
+    header "mota/BRMotaParams.h"
+    header "mota/BRX13Crypto.h"
     export *
+    
+    explicit module Ethereum {
+      header "ethereum/util/BRUtil.h"
+      header "ethereum/util/BRUtilHex.h"
+      header "ethereum/util/BRUtilMath.h"
+      export *
+    }
 }
