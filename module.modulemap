@@ -40,8 +40,8 @@ module BRCore [system] [extern_c] {
     export *
     
     explicit module Ethereum {
-      header "ethereum/rlp/BRRip.h"
-      header "ethereum/rlp/BRRipCoder.h"
+      header "ethereum/rlp/BRRlp.h"
+      header "ethereum/rlp/BRRlpCoder.h"
       header "ethereum/util/BRUtil.h"
       header "ethereum/util/BRUtilHex.h"
       header "ethereum/util/BRUtilMath.h"
