@@ -1808,6 +1808,34 @@ static BRMerkleBlock *_BRPeerManagerLookupBlockFromBlockNumber (BRPeerManager *m
   return NULL;
 }
 
+// rescans blocks and transactions from after the blockNumber.  If blockNumber is not known, then
+// rescan from the just prior checkpoint.
+void BRPeerManagerRescanFromBlockNumber(BRPeerManager *manager, uint32_t blockNumber)
+{
+  assert(manager != NULL);
+  pthread_mutex_lock(&manager->lock);
+  
+  int needConnect = 0;
+  if (manager->isConnected) {
+    BRMerkleBlock *block = _BRPeerManagerLookupBlockFromBlockNumber(manager, blockNumber);
+    
+    // If there was no block, find the preceeding hardcoded checkpoint.
+    if (NULL == block) {
+      for (size_t i = manager->params->checkpointsCount; i > 0; i--) {
+        if (i - 1 == 0 || manager->params->checkpoints[i - 1].height < blockNumber) {
+          UInt256 hash = UInt256Reverse(manager->params->checkpoints[i - 1].hash);
+          block = BRSetGet(manager->blocks, &hash);
+          break;
+        }
+      }
+    }
+    
+    needConnect = _BRPeerManagerRescan(manager, block);
+  }
+  pthread_mutex_unlock(&manager->lock);
+  if (needConnect) BRPeerManagerConnect(manager);
+}
+
 // the (unverified) best block height reported by connected peers
 uint32_t BRPeerManagerEstimatedBlockHeight(BRPeerManager *manager)
 {
