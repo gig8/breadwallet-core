@@ -727,7 +727,7 @@ int BRWalletContainsTransaction(BRWallet *wallet, const BRTransaction *tx)
 // adds a transaction to the wallet, or returns false if it isn't associated with the wallet
 int BRWalletRegisterTransaction(BRWallet *wallet, BRTransaction *tx)
 {
-//    _key_log("BRWalletRegisterTransaction\n");
+    _key_log("BRWalletRegisterTransaction\n");
 
     int wasAdded = 0, r = 1;
     
@@ -745,11 +745,11 @@ int BRWalletRegisterTransaction(BRWallet *wallet, BRTransaction *tx)
                 BRSetAdd(wallet->allTx, tx);
                 BRTransaction *temptx;
                 temptx = BRSetGet(wallet->allTx, tx);
-//                if (!temptx) {
-//                    _key_log("unable to store and retreive tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
-//                } else {
-//                    _key_log("successfully rstore and retreived tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
-//                }
+                if (!temptx) {
+                    _key_log("unable to store and retreive tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
+                } else {
+                    _key_log("successfully rstore and retreived tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
+                }
 
                 _BRWalletInsertTx(wallet, tx);
                 _BRWalletUpdateBalance(wallet);

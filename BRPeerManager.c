@@ -1209,13 +1209,13 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block)
         
         // false positive rate sanity check
         if (BRPeerConnectStatus(peer) == BRPeerStatusConnected &&
-            manager->fpRate > BLOOM_DEFAULT_FALSEPOSITIVE_RATE*25.0) {
+            manager->fpRate > BLOOM_DEFAULT_FALSEPOSITIVE_RATE*100.0) {
             peer_log(peer, "bloom filter false positive rate %f too high after %"PRIu32" blocks, disconnecting...",
                      manager->fpRate, manager->lastBlock->height + 1 - manager->filterUpdateHeight);
             BRPeerDisconnect(peer);
         }
         else if (manager->lastBlock->height + 500 < BRPeerLastBlock(peer) &&
-                 manager->fpRate > BLOOM_REDUCED_FALSEPOSITIVE_RATE*50.0) {
+                 manager->fpRate > BLOOM_REDUCED_FALSEPOSITIVE_RATE*100.0) {
             _BRPeerManagerUpdateFilter(manager); // rebuild bloom filter when it starts to degrade
         }
     }
