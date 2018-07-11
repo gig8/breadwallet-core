@@ -126,11 +126,13 @@ static size_t _BRTxInputData(const BRTxInput *input, uint8_t *data, size_t dataL
     int debug = 1;
     size_t off = 0;
 
+  tx_log("_BRTxInputData:\n");
+  
     if (data && off + sizeof(UInt256) <= dataLen)
         memcpy(&data[off], &input->txHash, sizeof(UInt256)); // previous out
     off += sizeof(UInt256);
     if (debug) {
-        tx_log("prevOut\n\t%s", u256hex(input->txHash));
+      tx_log("\tprevOut:\t%s\n", u256hex(input->txHash));
     }
 
     if (data && off + sizeof(uint32_t) <= dataLen) {
@@ -138,13 +140,13 @@ static size_t _BRTxInputData(const BRTxInput *input, uint8_t *data, size_t dataL
     }
     off += sizeof(uint32_t);
     if (debug) {
-        tx_log("index\n\t%08" PRIx32,input->index);
+      tx_log("\tindex:\t%08" PRIx32 "\n",input->index);
     }
 
     off += BRVarIntSet((data ? &data[off] : NULL), (off <= dataLen ? dataLen - off : 0),
                        input->sigLen);
     if (debug) {
-        tx_log("sigLen\n\t%02x",input->sigLen);
+      tx_log("\tsigLen:\t%02x (%02d)\n",input->sigLen, input->sigLen);
     }
 
     if (data && off + input->sigLen <= dataLen)
@@ -156,21 +158,21 @@ static size_t _BRTxInputData(const BRTxInput *input, uint8_t *data, size_t dataL
             sprintf(&sigHex[j * 3], "%02x ", input->signature[j]);
         }
         sigHex[input->sigLen * 3] = '\0';
-        tx_log("scriptSig\n\t%s", sigHex);
+      tx_log("\tscriptSig:\t%s\n", sigHex);
     }
 
     if (input->amount != 0) {
         if (data && off + sizeof(uint64_t) <= dataLen) UInt64SetLE(&data[off], input->amount);
         off += sizeof(uint64_t);
         if (debug) {
-            tx_log("amount\n\t%16" PRIx64,input->amount);
+          tx_log("\tamount:\t%16" PRIx64 "\n",input->amount);
         }
     }
 
     if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], input->sequence);
     off += sizeof(uint32_t);
     if (debug) {
-        tx_log("sequence\n\t%08" PRIx32,input->sequence);
+      tx_log("\tsequence:\t%08" PRIx32 "\n",input->sequence);
     }
 
     return (! data || off <= dataLen) ? off : 0;
@@ -215,18 +217,19 @@ static size_t _BRTransactionOutputData(const BRTransaction *tx, uint8_t *data, s
     BRTxOutput *output;
     size_t i, off = 0;
     int debug = 1;
-    
+  
+  tx_log("_BRTransactionOutputData\n");
     for (i = (index == SIZE_MAX ? 0 : index); i < tx->outCount && (index == SIZE_MAX || index == i); i++) {
         output = &tx->outputs[i];
         if (data && off + sizeof(uint64_t) <= dataLen) UInt64SetLE(&data[off], output->amount);
         off += sizeof(uint64_t);
         if (debug) {
-            tx_log("amount\n\t%016" PRIx64,output->amount);
+          tx_log("\tamount:\t%016" PRIx64 "\n",output->amount);
         }
 
         off += BRVarIntSet((data ? &data[off] : NULL), (off <= dataLen ? dataLen - off : 0), output->scriptLen);
         if (debug) {
-            tx_log("sigLen\n\t%02x",output->scriptLen);
+          tx_log("\tsigLen:\t%02x (%02d)\n",output->scriptLen, output->scriptLen);
         }
 
         if (data && off + output->scriptLen <= dataLen) memcpy(&data[off], output->script, output->scriptLen);
@@ -237,7 +240,7 @@ static size_t _BRTransactionOutputData(const BRTransaction *tx, uint8_t *data, s
                 sprintf(&sigHex[j * 3], "%02x ", output->script[j]);
             }
             sigHex[output->scriptLen * 3] = '\0';
-            tx_log("script\n\t%s", sigHex);
+          tx_log("\tscript:\t%s\n", sigHex);
         }
     }
     
@@ -389,7 +392,17 @@ static size_t _BRTransactionData(const BRTransaction *tx, uint8_t *data, size_t 
         if (data && off + sizeof(uint32_t) <= dataLen) UInt32SetLE(&data[off], hashType); // hash type
         off += sizeof(uint32_t);
     }
-    
+  
+  if (data) {
+    char chunk[3 * off + 1];
+    // lets see the whole message
+    for (size_t j = 0; j < off; j++) {
+      sprintf(&chunk[j * 3], "%02X ", data[j]);
+    }
+    chunk[3 * off] = '\0';
+    _key_log("_BRTransactionData: %s\n", chunk);
+  }
+  
     return (! data || off <= dataLen) ? off : 0;
 }
 
@@ -442,7 +455,17 @@ BRTransaction *BRTransactionParse(const BRChainParams *params, const uint8_t *bu
 {
     assert(buf != NULL || bufLen == 0);
     if (! buf) return NULL;
-    
+  
+  if (buf) {
+    char chunk[3 * bufLen + 1];
+    // lets see the whole message
+    for (size_t j = 0; j < bufLen; j++) {
+      sprintf(&chunk[j * 3], "%02X ", buf[j]);
+    }
+    chunk[3 * bufLen] = '\0';
+    _key_log("BRTransactionParse: %s\n", chunk);
+  }
+  
     int isSigned = 1;
     size_t i, off = 0, sLen = 0, len = 0;
     BRTransaction *tx = BRTransactionNew(params);
@@ -464,6 +487,7 @@ BRTransaction *BRTransactionParse(const BRChainParams *params, const uint8_t *bu
     for (i = 0; off <= bufLen && i < tx->inCount; i++) {
         input = &tx->inputs[i];
         input->txHash = (off + sizeof(UInt256) <= bufLen) ? UInt256Get(&buf[off]) : UINT256_ZERO;
+      
         off += sizeof(UInt256);
         input->index = (off + sizeof(uint32_t) <= bufLen) ? UInt32GetLE(&buf[off]) : 0;
         off += sizeof(uint32_t);
@@ -510,8 +534,11 @@ BRTransaction *BRTransactionParse(const BRChainParams *params, const uint8_t *bu
         BRTransactionFree(tx);
         tx = NULL;
     }
-    else if (isSigned) BRSHA256_2(&tx->txHash, buf, off);
-    
+    else if (isSigned) {
+      BRSHA256_2(&tx->txHash, buf, off);
+      printf("tx->txHash: %s\n", u256hex(UInt256Reverse(tx->txHash)));
+    }
+
     return tx;
 }
 

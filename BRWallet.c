@@ -746,9 +746,9 @@ int BRWalletRegisterTransaction(BRWallet *wallet, BRTransaction *tx)
                 BRTransaction *temptx;
                 temptx = BRSetGet(wallet->allTx, tx);
                 if (!temptx) {
-                    _key_log("unable to store and retreive tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
+                    _key_log("unable to store and retrieve tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
                 } else {
-                    _key_log("successfully rstore and retreived tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
+                    _key_log("successfully rstore and retrieved tx %s\n", u256hex(UInt256Reverse(tx->txHash)));
                 }
 
                 _BRWalletInsertTx(wallet, tx);
@@ -973,16 +973,18 @@ void BRWalletUpdateTransactions(BRWallet *wallet, const UInt256 txHashes[], size
         if (! tx || (tx->blockHeight == blockHeight && tx->timestamp == timestamp)) {
             if (!tx) {
                 // TU: Happens if tx has not yet been received (e.g., paper key restore), so we'll have to loop back on it
-                _key_log("unable to retreive txHash[%d] at %d from allTx %s\n", i, blockHeight, u256hex(UInt256Reverse(txHashes[i])));
+                _key_log("unable to retrieve txHash[%d] at %d from allTx %s\n", i, blockHeight, u256hex(UInt256Reverse(txHashes[i])));
 
                 // TU: Cache the data and reapply when the tx is received
 
             }
             continue;
         }
-        _key_log("successfully retreived txHash[%d] at %d from allTx %s\n", i, blockHeight, u256hex(UInt256Reverse(txHashes[i])));
+        _key_log("successfully retrieved txHash[%d] at %d from allTx %s\n", i, blockHeight, u256hex(UInt256Reverse(txHashes[i])));
 
+      if (tx->timestamp == 0) {   // for motacoin, we will already have the timestamp don't overwrite
         tx->timestamp = timestamp;
+      }
         tx->blockHeight = blockHeight;
         
         if (_BRWalletContainsTx(wallet, tx)) {
