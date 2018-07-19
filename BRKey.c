@@ -173,11 +173,12 @@ int BRKeySetSecret(BRKey *key, const UInt256 *secret, int compressed)
 int BRKeySetPrivKey(BRKey *key, const char *privKey)
 {
     size_t len = strlen(privKey);
-    uint8_t data[34], version = MOTACOIN_PRIVKEY;
+    uint8_t data[34], version = BITCOIN_PRIVKEY, mversion = MOTACOIN_PRIVKEY;
     int r = 0;
     
 #if BITCOIN_TESTNET
-    version = MOTACOIN_PRIVKEY_TEST;
+    version = BITCOIN_PRIVKEY_TEST;
+  mversion = MOTACOIN_PRIVKEY_TEST;
 #endif
 
     assert(key != NULL);
@@ -199,7 +200,8 @@ int BRKeySetPrivKey(BRKey *key, const char *privKey)
             }
         }
 
-        if ((len == sizeof(UInt256) + 1 || len == sizeof(UInt256) + 2) && data[0] == version) {
+        // TU - consider switching to mversion
+        if ((len == sizeof(UInt256) + 1 || len == sizeof(UInt256) + 2) && (data[0] == version || data[0] == mversion)) {
             r = BRKeySetSecret(key, (UInt256 *)&data[1], (len == sizeof(UInt256) + 2));
         }
         else if (len == sizeof(UInt256)) {
